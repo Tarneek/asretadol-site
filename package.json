@@ -1,0 +1,29 @@
+{
+  "name": "news-platform",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @news-platform/api --filter @news-platform/web dev",
+    "dev:api": "pnpm --filter @news-platform/api dev",
+    "dev:web": "pnpm --filter @news-platform/web dev",
+    "build": "pnpm --filter @news-platform/api build && pnpm --filter @news-platform/web build",
+    "build:api": "pnpm --filter @news-platform/api build",
+    "build:web": "pnpm --filter @news-platform/web build",
+    "start:api": "pnpm --filter @news-platform/api start:prod",
+    "start:web": "pnpm --filter @news-platform/web start",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm --filter @news-platform/api typecheck && pnpm --filter @news-platform/web typecheck",
+    "migration:run": "pnpm --filter @news-platform/api migration:run",
+    "migration:run:prod": "pnpm --filter @news-platform/api migration:run:prod",
+    "seed:demo": "pnpm --filter @news-platform/api seed:demo",
+    "diagnose:data": "pnpm --filter @news-platform/api diagnose:data",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}

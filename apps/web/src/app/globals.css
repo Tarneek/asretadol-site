@@ -1,0 +1,27 @@
+/* Minimal resets; public styles live in styles/site.css, admin in styles/admin.css */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background: #000000;
+  color: #fafafa;
+}
+
+/* Native UI (scrollbars, inputs); synced via #homepage data-site-theme — not inline on <html> (hydration-safe). */
+html {
+  color-scheme: dark;
+}
+
+html:has(#homepage[data-site-theme='light']) {
+  color-scheme: light;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
