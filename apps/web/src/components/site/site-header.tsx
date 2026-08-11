@@ -13,7 +13,6 @@ const NAV = [
   { href: '/', label: 'خانه' },
   { href: '/category/iranian-economy', label: 'اقتصاد ایران' },
   { href: '/category/world-economy', label: 'اقتصاد جهان' },
-  { href: '/#short-news', label: 'علاقه‌مندی‌ها' },
   { href: '/#about', label: 'درباره ما' },
   { href: '/#contact', label: 'تماس با ما' },
 ];
