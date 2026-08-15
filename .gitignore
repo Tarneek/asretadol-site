@@ -34,3 +34,6 @@ coverage
 # misc
 *.pem
 .turbo
+
+# local DB dumps (never commit)
+local_db_backup*.sql
