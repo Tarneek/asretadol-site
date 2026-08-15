@@ -26,8 +26,8 @@ export class AuthService {
     private readonly refreshTokensRepository: Repository<RefreshToken>,
   ) {}
 
-  async login(email: string, password: string): Promise<AuthTokensDto> {
-    const user = await this.usersService.findByEmail(email);
+  async login(mobile: string, password: string): Promise<AuthTokensDto> {
+    const user = await this.usersService.findByMobile(mobile);
     if (!user || !user.isActive) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -93,6 +93,7 @@ export class AuthService {
     const jwtConfig = this.configService.get('jwt', { infer: true });
     const payload: JwtAccessPayload = {
       sub: user.id,
+      mobile: user.mobile,
       email: user.email,
       role: user.role,
       type: 'access',

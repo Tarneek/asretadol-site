@@ -3,7 +3,7 @@ import { UserRole } from '../../../common/enums/user-role.enum';
 
 export class ArticleAuthorDto {
   id!: string;
-  email!: string;
+  email!: string | null;
   displayName!: string;
   role!: UserRole;
 }

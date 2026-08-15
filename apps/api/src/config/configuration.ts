@@ -27,6 +27,7 @@ export type AppConfig = {
   trustProxy: boolean;
   seed: {
     enabled: boolean;
+    adminMobile?: string;
     adminEmail?: string;
     adminPassword?: string;
     adminDisplayName: string;
@@ -75,6 +76,7 @@ export function configuration(): AppConfig {
       enabled:
         env.SEED_ADMIN_ENABLED === 'true' ||
         env.SEED_ADMIN_ENABLED === '1',
+      adminMobile: env.SEED_ADMIN_MOBILE,
       adminEmail: env.SEED_ADMIN_EMAIL,
       adminPassword: env.SEED_ADMIN_PASSWORD,
       adminDisplayName: env.SEED_ADMIN_DISPLAY_NAME ?? 'Administrator',

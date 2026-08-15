@@ -15,8 +15,15 @@ html {
   color-scheme: dark;
 }
 
-html:has(#homepage[data-site-theme='light']) {
+html:has(#homepage[data-site-theme='light']),
+html:has(.admin-root) {
   color-scheme: light;
+}
+
+html:has(.admin-root),
+html:has(.admin-root) body {
+  background: #f4f7fa;
+  color: #343a40;
 }
 
 button,

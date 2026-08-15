@@ -1,6 +1,7 @@
 export class UserProfileDto {
   id!: string;
-  email!: string;
+  mobile!: string;
+  email!: string | null;
   displayName!: string;
   role!: string;
   isActive!: boolean;

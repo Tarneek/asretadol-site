@@ -64,6 +64,7 @@ async function resolveArticleVideoFromForm(
 
 export async function createArticleAction(formData: FormData) {
   const title = String(formData.get('title') ?? '').trim();
+  const slug = String(formData.get('slug') ?? '').trim();
   const content = String(formData.get('content') ?? '').trim();
   const excerpt = String(formData.get('excerpt') ?? '').trim();
   const seoTitle = String(formData.get('seoTitle') ?? '').trim();
@@ -98,6 +99,7 @@ export async function createArticleAction(formData: FormData) {
   try {
     article = await createAdminArticle({
       title,
+      ...(slug ? { slug } : {}),
       content,
       excerpt: excerpt || null,
       seoTitle: seoTitle || null,
@@ -124,6 +126,7 @@ export async function createArticleAction(formData: FormData) {
 
 export async function updateArticleAction(id: number, formData: FormData) {
   const title = String(formData.get('title') ?? '').trim();
+  const slug = String(formData.get('slug') ?? '').trim();
   const content = String(formData.get('content') ?? '').trim();
   const excerpt = String(formData.get('excerpt') ?? '').trim();
   const seoTitle = String(formData.get('seoTitle') ?? '').trim();
@@ -162,6 +165,7 @@ export async function updateArticleAction(id: number, formData: FormData) {
   try {
     await updateAdminArticle(id, {
       title,
+      ...(slug ? { slug } : {}),
       content,
       excerpt: excerpt || null,
       seoTitle: seoTitle || null,

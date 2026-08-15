@@ -10,7 +10,8 @@ import {
 
 export type SessionUser = {
   id: string;
-  email: string;
+  mobile: string;
+  email: string | null;
   displayName: string;
   role: string;
   isActive: boolean;
@@ -122,13 +123,13 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 export async function loginWithCredentials(
-  email: string,
+  mobile: string,
   password: string,
 ): Promise<SessionUser> {
   const tokens = await apiFetch<AuthTokens>('/auth/login', {
     revalidate: false,
     method: 'POST',
-    body: { email, password },
+    body: { mobile, password },
   });
 
   await setAuthCookies(tokens);

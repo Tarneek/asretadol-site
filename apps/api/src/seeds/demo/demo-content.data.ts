@@ -19,6 +19,7 @@ export type DemoTagSeed = {
 
 export type DemoAuthorSeed = {
   email: string;
+  mobile: string;
   displayName: string;
   role: 'editor' | 'author';
 };
@@ -133,9 +134,9 @@ export const demoTags: DemoTagSeed[] = [
 ];
 
 export const demoAuthors: DemoAuthorSeed[] = [
-  { email: 'editor@news.local', displayName: 'مریم کاظمی', role: 'editor' },
-  { email: 'sara.author@news.local', displayName: 'سارا موسوی', role: 'author' },
-  { email: 'ali.author@news.local', displayName: 'علی رضایی', role: 'author' },
+  { email: 'editor@news.local', mobile: '09121110001', displayName: 'مریم کاظمی', role: 'editor' },
+  { email: 'sara.author@news.local', mobile: '09121110002', displayName: 'سارا موسوی', role: 'author' },
+  { email: 'ali.author@news.local', mobile: '09121110003', displayName: 'علی رضایی', role: 'author' },
 ];
 
 type ArticleBlueprint = {

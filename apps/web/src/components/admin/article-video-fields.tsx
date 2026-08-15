@@ -17,8 +17,9 @@ export function ArticleVideoFields({ initialHasVideo = false, initialVideoUrl = 
   const isLocalUpload = videoPath.startsWith('/uploads/videos/');
 
   return (
-    <div className="form-section">
-      <h3 className="form-section__title">ویدیو</h3>
+    <div className="form-field article-video-field">
+      <span className="form-field__label">ویدیو</span>
+      <p className="form-field__hint">اختیاری — لینک خارجی یا بارگذاری فایل.</p>
       <label className="checkbox-row" htmlFor={toggleId}>
         <input
           id={toggleId}
@@ -31,14 +32,14 @@ export function ArticleVideoFields({ initialHasVideo = false, initialVideoUrl = 
         این مطلب ویدیو دارد
       </label>
       {hasVideo ? (
-        <div className="article-video-field" style={{ marginTop: '0.75rem' }}>
+        <div className="stack stack--sm" style={{ marginTop: '0.75rem' }}>
           <input type="hidden" name="videoUrl" value={videoPath} />
           <div className="form-field">
             <label className="form-field__label" htmlFor={videoUrlId}>
-              آدرس ویدیو (اختیاری اگر فایل آپلود می‌کنید)
+              آدرس ویدیو
             </label>
             <p className="form-field__hint">
-              YouTube، Aparat، یا هر URL https — در غیر این صورت فایل را در پایین بارگذاری کنید.
+              YouTube، Aparat، یا هر URL https — در غیر این صورت فایل را بارگذاری کنید.
             </p>
             <input
               id={videoUrlId}

@@ -21,8 +21,8 @@ export async function AdminDashboardView() {
     { label: 'منتشرشده', value: stats.publishedCount, accent: 'emerald' as const },
     { label: 'زمان‌بندی', value: stats.scheduledCount, accent: 'amber' as const },
     { label: 'استوری فعال', value: stats.activeStories, accent: 'violet' as const },
-    { label: 'دسته‌بندی', value: categories.length, accent: 'slate' as const },
-    { label: 'برچسب', value: tags.length, accent: 'slate' as const },
+    { label: 'دسته‌بندی', value: categories.length, accent: 'blue' as const },
+    { label: 'برچسب', value: tags.length, accent: 'coral' as const },
   ];
 
   return (
@@ -45,29 +45,33 @@ export async function AdminDashboardView() {
         <DashboardViewsChart chart={chart} unavailable={chartUnavailable} />
       </div>
 
-      <h2 className="section-title">دسترسی سریع</h2>
-      <div className="quick-links">
-        <Link href="/admin/articles/new" className="quick-link">
-          <p className="quick-link__title">مطلب جدید</p>
-          <p className="quick-link__desc">ثبت پیش‌نویس با گزینه‌های سرتیتر، ویژه یا فوری.</p>
-        </Link>
-        <Link href="/admin/articles" className="quick-link">
-          <p className="quick-link__title">مدیریت مطالب</p>
-          <p className="quick-link__desc">فیلتر بر اساس وضعیت، دسته یا جستجو.</p>
-        </Link>
-        <Link href="/admin/stories" className="quick-link">
-          <p className="quick-link__title">استوری‌ها</p>
-          <p className="quick-link__desc">
-            {stats.activeStories.toLocaleString('fa-IR')} استوری فعال در ریل صفحهٔ اصلی.
-          </p>
-        </Link>
-        <Link href="/admin/categories" className="quick-link">
-          <p className="quick-link__title">دسته‌بندی‌ها</p>
-          <p className="quick-link__desc">
-            {categories.length.toLocaleString('fa-IR')} موضوع تعریف‌شده.
-          </p>
-        </Link>
-      </div>
+      <section className="dashboard-quick-section" aria-labelledby="dashboard-quick-access-title">
+        <h2 id="dashboard-quick-access-title" className="section-title">
+          دسترسی سریع
+        </h2>
+        <div className="quick-links">
+          <Link href="/admin/articles/new" className="quick-link">
+            <p className="quick-link__title">مطلب جدید</p>
+            <p className="quick-link__desc">ثبت پیش‌نویس با گزینه‌های سرتیتر، ویژه یا فوری.</p>
+          </Link>
+          <Link href="/admin/articles" className="quick-link">
+            <p className="quick-link__title">مدیریت مطالب</p>
+            <p className="quick-link__desc">فیلتر بر اساس وضعیت، دسته یا جستجو.</p>
+          </Link>
+          <Link href="/admin/stories" className="quick-link">
+            <p className="quick-link__title">استوری‌ها</p>
+            <p className="quick-link__desc">
+              {stats.activeStories.toLocaleString('fa-IR')} استوری فعال در ریل صفحهٔ اصلی.
+            </p>
+          </Link>
+          <Link href="/admin/categories" className="quick-link">
+            <p className="quick-link__title">دسته‌بندی‌ها</p>
+            <p className="quick-link__desc">
+              {categories.length.toLocaleString('fa-IR')} موضوع تعریف‌شده.
+            </p>
+          </Link>
+        </div>
+      </section>
     </>
   );
 }

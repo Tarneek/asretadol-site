@@ -19,7 +19,7 @@ export default async function NewArticlePage({ searchParams }: NewArticlePagePro
     <>
       <AdminPageHeader
         title="مطلب جدید"
-        description="مطلب به‌صورت پیش‌نویس ذخیره می‌شود؛ انتشار از صفحهٔ ویرایش."
+        description="فرم تحریریه برای ثبت پیش‌نویس؛ انتشار و مدیریت وضعیت از صفحهٔ ویرایش انجام می‌شود."
         actions={
           <Link href="/admin/articles" className="btn btn--secondary btn--sm">
             انصراف

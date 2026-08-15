@@ -15,8 +15,13 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
-  email!: string;
+  /** Iranian mobile in canonical form `09xxxxxxxxx` — primary login identifier. */
+  @Column({ type: 'varchar', length: 11, unique: true })
+  mobile!: string;
+
+  /** Optional contact email (legacy / notifications). */
+  @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
+  email!: string | null;
 
   @Column({ name: 'password_hash', type: 'varchar', length: 255 })
   passwordHash!: string;

@@ -63,8 +63,8 @@ export function DashboardViewsChart({ chart, unavailable = false }: Props) {
         >
           <defs>
             <linearGradient id="viewsAreaFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(163, 163, 163, 0.35)" />
-              <stop offset="100%" stopColor="rgba(163, 163, 163, 0.02)" />
+              <stop offset="0%" stopColor="rgba(63, 81, 181, 0.28)" />
+              <stop offset="100%" stopColor="rgba(63, 81, 181, 0.02)" />
             </linearGradient>
           </defs>
 

@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { normalizeIranianMobile } from '@/lib/iranian-mobile';
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -16,11 +17,18 @@ export function LoginForm() {
     setLoading(true);
     setError(null);
 
+    const normalized = normalizeIranianMobile(mobile);
+    if (!normalized) {
+      setError('شماره موبایل معتبر نیست. مثال: 09123456789');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ mobile: normalized, password }),
       });
 
       if (!response.ok) {
@@ -36,7 +44,11 @@ export function LoginForm() {
           setError('ارتباط با سرور برقرار نشد. پایگاه‌داده و سرویس API را اجرا کنید.');
           return;
         }
-        setError('ایمیل یا رمز عبور نادرست است.');
+        if (response.status === 400) {
+          setError(payload?.message || 'شماره موبایل معتبر نیست.');
+          return;
+        }
+        setError('شماره موبایل یا رمز عبور نادرست است.');
         return;
       }
 
@@ -57,18 +69,23 @@ export function LoginForm() {
         <p className="login-card__subtitle">سامانه مدیریت خبرگزاری</p>
       </div>
       <div className="form-field">
-        <label className="form-field__label" htmlFor="login-email">
-          ایمیل
+        <label className="form-field__label" htmlFor="login-mobile">
+          شماره موبایل
         </label>
         <input
-          id="login-email"
-          type="email"
+          id="login-mobile"
+          type="tel"
+          inputMode="numeric"
           dir="ltr"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
           required
-          autoComplete="email"
+          autoComplete="username"
+          placeholder="09123456789"
+          pattern="09[0-9]{9}"
+          maxLength={14}
         />
+        <p className="form-field__hint">فرمت: ۱۱ رقم و شروع با ۰۹</p>
       </div>
       <div className="form-field">
         <label className="form-field__label" htmlFor="login-password">

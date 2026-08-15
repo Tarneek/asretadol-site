@@ -177,7 +177,9 @@ async function seedAuthors(
 
   for (const author of demoAuthors) {
     const email = author.email.toLowerCase();
-    const existing = await usersRepo.findOne({ where: { email } });
+    const existing =
+      (await usersRepo.findOne({ where: { mobile: author.mobile } })) ??
+      (await usersRepo.findOne({ where: { email } }));
     if (existing) {
       continue;
     }
@@ -185,6 +187,7 @@ async function seedAuthors(
     const role = author.role === 'editor' ? UserRole.Editor : UserRole.Author;
     await usersRepo.save(
       usersRepo.create({
+        mobile: author.mobile,
         email,
         passwordHash,
         displayName: author.displayName,
@@ -254,7 +257,9 @@ async function loadUserEmails(usersRepo: Repository<User>): Promise<Map<string, 
   const users = await usersRepo.find({ where: { email: In(emails) } });
   const map = new Map<string, User>();
   for (const user of users) {
-    map.set(user.email, user);
+    if (user.email) {
+      map.set(user.email, user);
+    }
   }
   return map;
 }

@@ -65,6 +65,20 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    href: '/admin/users',
+    label: 'مدیریت کاربران',
+    exact: false,
+    adminOnly: true,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" strokeLinecap="round" />
+        <circle cx="9" cy="7" r="3.5" />
+        <path d="M22 21v-2a3.5 3.5 0 0 0-2.5-3.35" strokeLinecap="round" />
+        <path d="M16.5 3.7a3.5 3.5 0 0 1 0 6.6" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ];
 
 export function AdminSidebar({ user }: { user: SessionUser }) {
@@ -74,6 +88,8 @@ export function AdminSidebar({ user }: { user: SessionUser }) {
     if (exact) return pathname === href;
     return pathname === href || pathname.startsWith(`${href}/`);
   }
+
+  const visibleNav = navItems.filter((item) => !item.adminOnly || user.role === 'admin');
 
   return (
     <aside className="admin-sidebar">
@@ -85,11 +101,16 @@ export function AdminSidebar({ user }: { user: SessionUser }) {
       <div className="admin-sidebar__user">
         <span className="admin-sidebar__user-name">{user.displayName}</span>
         {adminRoleLabel(user.role)}
+        {user.mobile ? (
+          <span className="muted" dir="ltr" style={{ display: 'block', marginTop: '0.25rem' }}>
+            {user.mobile}
+          </span>
+        ) : null}
       </div>
 
       <nav aria-label="منوی مدیریت">
         <ul className="admin-nav">
-          {navItems.map((item) => (
+          {visibleNav.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}

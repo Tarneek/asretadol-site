@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
   Min,
   MinLength,
   validateSync,
@@ -113,6 +114,11 @@ export class EnvironmentVariables {
   SEED_ADMIN_ENABLED?: boolean = false;
 
   @ValidateIf((env) => env.SEED_ADMIN_ENABLED === true || env.SEED_ADMIN_ENABLED === 'true')
+  @IsString()
+  @Matches(/^09\d{9}$/, { message: 'SEED_ADMIN_MOBILE must be 09xxxxxxxxx' })
+  SEED_ADMIN_MOBILE?: string;
+
+  @IsOptional()
   @IsEmail()
   SEED_ADMIN_EMAIL?: string;
 
