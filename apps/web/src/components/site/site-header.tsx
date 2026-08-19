@@ -138,9 +138,9 @@ export function SiteHeader() {
           <Link href="/" className="site-header__brand" aria-label="پایگاه خبری تحلیلی — صفحه اصلی">
             <Image
               src="/img/logo-top.png"
-              alt="پایگاه خبری تحلیلی"
-              width={220}
-              height={56}
+              alt="نیرا نیوز — پایگاه خبری تحلیلی"
+              width={240}
+              height={60}
               className="site-header__logo"
               priority
             />
