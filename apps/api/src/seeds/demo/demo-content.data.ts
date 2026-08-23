@@ -173,7 +173,7 @@ function buildArticle(bp: ArticleBlueprint, index: number): DemoArticleSeed {
     categorySlugs: bp.categorySlugs,
     tagSlugs: bp.tagSlugs,
     authorEmail,
-    seoTitle: `${bp.title} | عصر تعادل`,
+    seoTitle: `${bp.title} | نیرا نیوز`,
     seoDescription: bp.excerpt.slice(0, 160),
     featuredImage: ARTICLE_PLACEHOLDER_IMAGE_PATH,
   };

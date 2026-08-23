@@ -23,6 +23,7 @@ const ALLOWED_TAGS = [
   'blockquote',
   'a',
   'img',
+  'video',
   'span',
   'div',
   'sub',
@@ -31,7 +32,25 @@ const ALLOWED_TAGS = [
   'code',
 ];
 
-const ALLOWED_ATTR = ['href', 'title', 'target', 'rel', 'src', 'alt', 'class'];
+const ALLOWED_ATTR = [
+  'href',
+  'title',
+  'target',
+  'rel',
+  'src',
+  'alt',
+  'class',
+  'dir',
+  'controls',
+  'playsinline',
+  'style',
+];
+
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS,
+  ALLOWED_ATTR,
+  ALLOW_DATA_ATTR: false,
+} as const;
 
 type DomPurifyLike = {
   sanitize: (
@@ -59,23 +78,27 @@ export function sanitizeArticleHtml(html: string): string {
     return '';
   }
 
-  return browserDomPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOW_DATA_ATTR: false,
-  });
+  return browserDomPurify.sanitize(html, SANITIZE_CONFIG);
 }
 
 /** Prefer this in effects — loads DOMPurify once in the browser. */
 export async function sanitizeArticleHtmlAsync(html: string): Promise<string> {
   if (typeof window === 'undefined') {
-    return '';
+    return html;
   }
 
   const DOMPurify = await loadDomPurify();
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOW_DATA_ATTR: false,
-  });
+  return DOMPurify.sanitize(html, SANITIZE_CONFIG);
+}
+
+/** Sanitize article HTML before persisting (server actions / API). */
+export async function sanitizeArticleHtmlForStorage(html: string): Promise<string> {
+  const trimmed = html.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  const mod = await import('isomorphic-dompurify');
+  const DOMPurify = (('default' in mod && mod.default) ? mod.default : mod) as DomPurifyLike;
+  return DOMPurify.sanitize(trimmed, SANITIZE_CONFIG);
 }

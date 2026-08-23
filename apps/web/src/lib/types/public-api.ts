@@ -31,6 +31,28 @@ export type PublicStory = {
   createdAt: string;
 };
 
+export type PublicAdvertisement = {
+  id: string;
+  title: string;
+  imageUrl: string;
+  linkUrl: string;
+  placement: 'ad-slot' | 'ad-banner';
+  slotIndex: number;
+  rotationEnabled: boolean;
+  rotationIntervalSeconds: number;
+};
+
+export type PublicMarketRate = {
+  key: string;
+  title: string;
+  currentPrice: string;
+  changeValue: string;
+  changePercent: string;
+  changeDisplay: string;
+  trend: 'up' | 'down';
+  lastUpdated: string;
+};
+
 export type PublicArticleCard = {
   id: number;
   title: string;

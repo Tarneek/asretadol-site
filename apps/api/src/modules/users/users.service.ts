@@ -118,6 +118,32 @@ export class UsersService {
     return this.createUser(input);
   }
 
+  /** Create or update by mobile (password re-hashed with bcrypt). */
+  async upsertUserByMobile(input: {
+    mobile: string;
+    password: string;
+    displayName: string;
+    role: UserRole;
+    isActive?: boolean;
+  }): Promise<{ user: User; created: boolean }> {
+    const mobile = this.normalizeMobileOrThrow(input.mobile);
+    const existing = await this.findByMobile(mobile);
+    if (existing) {
+      const user = await this.updateUser(existing.id, {
+        password: input.password,
+        displayName: input.displayName,
+        role: input.role,
+        isActive: input.isActive ?? true,
+      });
+      return { user, created: false };
+    }
+    const user = await this.createUser({
+      ...input,
+      isActive: input.isActive ?? true,
+    });
+    return { user, created: true };
+  }
+
   async updateUser(
     id: string,
     input: {

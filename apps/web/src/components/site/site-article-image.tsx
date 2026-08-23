@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { imageOrPlaceholder } from '@/lib/format';
+import { imageOrPlaceholder, isUploadedMediaPath } from '@/lib/format';
 
 type SiteArticleImageProps = {
   src: string | null | undefined;
@@ -23,6 +23,9 @@ export function SiteArticleImage({
   priority,
 }: SiteArticleImageProps) {
   const resolved = imageOrPlaceholder(src);
+  // Runtime volume files are not served by Next's static handler in standalone;
+  // nginx serves /uploads/* — skip the optimizer so the browser hits nginx directly.
+  const unoptimized = isUploadedMediaPath(resolved);
 
   if (fill) {
     return (
@@ -33,6 +36,7 @@ export function SiteArticleImage({
         className={className}
         sizes={sizes ?? '(max-width: 768px) 100vw, 50vw'}
         priority={priority}
+        unoptimized={unoptimized}
       />
     );
   }
@@ -46,6 +50,7 @@ export function SiteArticleImage({
       className={className}
       sizes={sizes}
       priority={priority}
+      unoptimized={unoptimized}
     />
   );
 }

@@ -8,7 +8,7 @@ export type AppEnvironment = 'development' | 'production' | 'test';
 export type ApiEnvOk = {
   status: 'ok';
   baseUrl: string;
-  source: 'env' | 'development-default';
+  source: 'env' | 'development-default' | 'internal';
 };
 
 export type ApiEnvMissing = {
@@ -43,11 +43,25 @@ export function isProductionApp(): boolean {
 }
 
 /**
- * Resolves the public API base URL without throwing.
- * - Uses NEXT_PUBLIC_API_URL when set (staging/production/local).
+ * Resolves the API base URL without throwing.
+ * - On the server, prefers API_INTERNAL_URL (Docker service name) so BFF auth
+ *   does not loop through nginx `location = /api/auth/login` back to Next.js.
+ * - Otherwise uses NEXT_PUBLIC_API_URL (browser / public SSR).
  * - In development, falls back to localhost so `pnpm dev:web` works without a web-only .env.
  */
 export function getApiEnv(): ApiEnvConfig {
+  // Server-only env — never inlined into the client bundle.
+  if (typeof window === 'undefined') {
+    const internal = process.env.API_INTERNAL_URL?.trim();
+    if (internal) {
+      return {
+        status: 'ok',
+        baseUrl: normalizeApiBaseUrl(internal),
+        source: 'internal',
+      };
+    }
+  }
+
   const explicit = process.env.NEXT_PUBLIC_API_URL?.trim();
 
   if (explicit) {

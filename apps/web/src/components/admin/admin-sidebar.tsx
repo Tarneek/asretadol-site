@@ -66,6 +66,17 @@ const navItems = [
     ),
   },
   {
+    href: '/admin/advertisements',
+    label: 'تبلیغات',
+    exact: false,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="M7 9h4M7 13h10" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     href: '/admin/users',
     label: 'مدیریت کاربران',
     exact: false,

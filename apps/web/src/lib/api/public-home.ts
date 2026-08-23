@@ -8,7 +8,9 @@ import {
   fetchTagArticles,
 } from './public-articles';
 import { fetchPublicStories } from './public-stories';
-import type { PublicArticleCard, PublicStory } from '../types/public-api';
+import { safeFetchPublicAdvertisements } from './public-advertisements';
+import { safeFetchPublicMarketRates } from './public-market-rates';
+import type { PublicArticleCard, PublicStory, PublicAdvertisement } from '../types/public-api';
 
 export type PublicCategorySummary = {
   id: string;
@@ -74,7 +76,7 @@ export async function safeFetchTagArticles(
 }
 
 export async function loadHomepageFeeds() {
-  const [hero, featured, latest, iranEconomy, worldEconomy, analytical, stories] =
+  const [hero, featured, latest, iranEconomy, worldEconomy, analytical, stories, advertisements, marketRates] =
     await Promise.all([
       fetchHeroArticles({ limit: 6 }),
       fetchFeaturedArticles({ limit: 8 }),
@@ -88,6 +90,8 @@ export async function loadHomepageFeeds() {
         }
         return [] as PublicStory[];
       }),
+      safeFetchPublicAdvertisements(),
+      safeFetchPublicMarketRates(),
     ]);
 
   return {
@@ -98,5 +102,7 @@ export async function loadHomepageFeeds() {
     worldEconomy,
     analytical,
     stories,
+    advertisements,
+    marketRates,
   };
 }

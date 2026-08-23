@@ -2,6 +2,7 @@ import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { ConfirmSubmit } from '@/components/admin/confirm-submit';
 import { EmptyState } from '@/components/admin/empty-state';
 import { FlashBanner, flashFromSearchParams } from '@/components/admin/flash-banner';
+import { StoryMediaFields } from '@/components/admin/story-media-fields';
 import { SubmitButton } from '@/components/admin/submit-button';
 import { getSession } from '@/lib/auth/session';
 import { canManageContent } from '@/lib/auth/permissions';
@@ -26,7 +27,7 @@ export default async function AdminStoriesPage({ searchParams }: AdminStoriesPag
     <>
       <AdminPageHeader
         title="استوری‌ها"
-        description="مدیریت دایره‌های استوری صفحهٔ اصلی؛ آدرس تصویر یا ویدیو و لینک مقصد اختیاری."
+        description="مدیریت دایره‌های استوری صفحهٔ اصلی؛ بارگذاری تصویر/ویدیو یا آدرس URL و لینک مقصد اختیاری."
       />
       {flash ? <FlashBanner {...flash} /> : null}
 
@@ -37,23 +38,7 @@ export default async function AdminStoriesPage({ searchParams }: AdminStoriesPag
               <span className="form-field__label">عنوان</span>
               <input name="title" required placeholder="مثلاً خبر طلا" />
             </label>
-            <label className="form-field">
-              <span className="form-field__label">نوع رسانه</span>
-              <select name="mediaType" defaultValue="image">
-                <option value="image">تصویر</option>
-                <option value="video">ویدیو</option>
-              </select>
-            </label>
-            <label className="form-field" style={{ gridColumn: '1 / -1' }}>
-              <span className="form-field__label">آدرس رسانه</span>
-              <input
-                name="mediaUrl"
-                type="url"
-                dir="ltr"
-                required
-                placeholder="https://example.com/story.jpg"
-              />
-            </label>
+            <StoryMediaFields idPrefix="story-create" />
             <label className="form-field" style={{ gridColumn: '1 / -1' }}>
               <span className="form-field__label">لینک مقصد (اختیاری)</span>
               <input name="link" type="url" dir="ltr" placeholder="https://example.com/article" />
@@ -87,7 +72,7 @@ export default async function AdminStoriesPage({ searchParams }: AdminStoriesPag
             </thead>
             <tbody>
               {stories.map((story) => {
-                const updateAction = updateStoryAction.bind(null, story.id);
+                const updateAction = updateStoryAction.bind(null, story.id, story.mediaUrl);
                 const deleteAction = deleteStoryAction.bind(null, story.id);
 
                 return (
@@ -113,23 +98,11 @@ export default async function AdminStoriesPage({ searchParams }: AdminStoriesPag
                               <span className="form-field__label">عنوان</span>
                               <input name="title" defaultValue={story.title} required />
                             </label>
-                            <label className="form-field">
-                              <span className="form-field__label">نوع رسانه</span>
-                              <select name="mediaType" defaultValue={story.mediaType}>
-                                <option value="image">تصویر</option>
-                                <option value="video">ویدیو</option>
-                              </select>
-                            </label>
-                            <label className="form-field" style={{ gridColumn: '1 / -1' }}>
-                              <span className="form-field__label">آدرس رسانه</span>
-                              <input
-                                name="mediaUrl"
-                                type="url"
-                                dir="ltr"
-                                defaultValue={story.mediaUrl}
-                                required
-                              />
-                            </label>
+                            <StoryMediaFields
+                              idPrefix={`story-${story.id}`}
+                              initialMediaType={story.mediaType}
+                              initialMediaUrl={story.mediaUrl}
+                            />
                             <label className="form-field" style={{ gridColumn: '1 / -1' }}>
                               <span className="form-field__label">لینک مقصد</span>
                               <input

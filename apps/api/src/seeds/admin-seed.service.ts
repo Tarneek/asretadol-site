@@ -3,22 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserRole } from '../common/enums/user-role.enum';
 import { AppConfig } from '../config/configuration';
 import { UsersService } from '../modules/users/users.service';
-
-/** Panel operators requested for CMS access (passwords bcrypt-hashed on create). */
-const PANEL_OPERATORS = [
-  {
-    mobile: '09154759516',
-    password: 'Asrtaadol.123',
-    displayName: 'اپراتور تحریریه ۱',
-    role: UserRole.Admin,
-  },
-  {
-    mobile: '09123027510',
-    password: 'Asrtaadol.123',
-    displayName: 'اپراتور تحریریه ۲',
-    role: UserRole.Admin,
-  },
-] as const;
+import { PANEL_ADMINS } from './panel-admins.data';
 
 @Injectable()
 export class AdminSeedService implements OnModuleInit {
@@ -34,8 +19,9 @@ export class AdminSeedService implements OnModuleInit {
     await this.seedLegacyAdminIfEnabled();
   }
 
+  /** Create missing panel users only — does not overwrite existing passwords. */
   private async ensurePanelOperators(): Promise<void> {
-    for (const operator of PANEL_OPERATORS) {
+    for (const operator of PANEL_ADMINS) {
       const before = await this.usersService.findByMobile(operator.mobile);
       await this.usersService.ensureUser({
         mobile: operator.mobile,

@@ -13,6 +13,7 @@ import {
   uploadAdminArticleVideo,
 } from '@/lib/api/admin-articles';
 import { NEWS_PLACEHOLDER_IMAGE_PATH } from '@/lib/format';
+import { sanitizeArticleHtmlForStorage } from '@/lib/sanitize-html';
 
 function actionErrorRedirect(path: string, message: string): never {
   redirect(`${path}?error=${encodeURIComponent(message)}`);
@@ -65,7 +66,8 @@ async function resolveArticleVideoFromForm(
 export async function createArticleAction(formData: FormData) {
   const title = String(formData.get('title') ?? '').trim();
   const slug = String(formData.get('slug') ?? '').trim();
-  const content = String(formData.get('content') ?? '').trim();
+  const rawContent = String(formData.get('content') ?? '').trim();
+  const content = await sanitizeArticleHtmlForStorage(rawContent);
   const excerpt = String(formData.get('excerpt') ?? '').trim();
   const seoTitle = String(formData.get('seoTitle') ?? '').trim();
   const seoDescription = String(formData.get('seoDescription') ?? '').trim();
@@ -127,7 +129,8 @@ export async function createArticleAction(formData: FormData) {
 export async function updateArticleAction(id: number, formData: FormData) {
   const title = String(formData.get('title') ?? '').trim();
   const slug = String(formData.get('slug') ?? '').trim();
-  const content = String(formData.get('content') ?? '').trim();
+  const rawContent = String(formData.get('content') ?? '').trim();
+  const content = await sanitizeArticleHtmlForStorage(rawContent);
   const excerpt = String(formData.get('excerpt') ?? '').trim();
   const seoTitle = String(formData.get('seoTitle') ?? '').trim();
   const seoDescription = String(formData.get('seoDescription') ?? '').trim();

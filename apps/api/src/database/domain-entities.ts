@@ -6,6 +6,8 @@ import { Category } from '../modules/categories/entities/category.entity';
 import { Story } from '../modules/stories/entities/story.entity';
 import { Tag } from '../modules/tags/entities/tag.entity';
 import { User } from '../modules/users/entities/user.entity';
+import { Advertisement } from '../modules/advertisements/entities/advertisement.entity';
+import { MarketRate } from '../modules/market/entities/market-rate.entity';
 
 export const domainEntities = [
   User,
@@ -13,6 +15,8 @@ export const domainEntities = [
   Category,
   Tag,
   Story,
+  Advertisement,
+  MarketRate,
   Article,
   ArticleSeo,
   ArticleDailyViews,

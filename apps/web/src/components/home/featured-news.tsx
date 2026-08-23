@@ -1,15 +1,18 @@
 import Link from 'next/link';
 import { ArticleNewsThumbnail } from '@/components/site/article-news-thumbnail';
+import { AdRotator } from '@/components/home/ad-rotator';
 import { articleHref, formatFaDate } from '@/lib/format';
-import type { PublicArticleCard } from '@/lib/types/public-api';
+import type { PublicAdvertisement, PublicArticleCard } from '@/lib/types/public-api';
 
 type Props = {
   hero: PublicArticleCard[];
   featured: PublicArticleCard[];
   latest: PublicArticleCard[];
+  adSlot0?: PublicAdvertisement[];
+  adSlot1?: PublicAdvertisement[];
 };
 
-export function FeaturedNews({ hero, featured, latest }: Props) {
+export function FeaturedNews({ hero, featured, latest, adSlot0 = [], adSlot1 = [] }: Props) {
   const mainHero = hero[0] ?? featured[0] ?? latest[0];
   const sideHero = hero[1] ?? featured[1] ?? latest[1];
   const sideList = (hero.length > 2 ? hero.slice(2) : latest)
@@ -59,10 +62,12 @@ export function FeaturedNews({ hero, featured, latest }: Props) {
             </div>
           </Link>
         </div>
-        <div className="ad-slots" aria-hidden>
-          <div className="ad-slot" />
-          <div className="ad-slot" />
-        </div>
+        {(adSlot0.length > 0 || adSlot1.length > 0) ? (
+          <div className="ad-slots">
+            <AdRotator ads={adSlot0} className="ad-slot" />
+            <AdRotator ads={adSlot1} className="ad-slot" />
+          </div>
+        ) : null}
       </div>
 
       {sideHero ? (

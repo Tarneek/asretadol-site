@@ -15,16 +15,21 @@ import {
 } from '@/components/site/api-unavailable-notice';
 import { ApiError } from '@/lib/api/client';
 import { loadHomepageFeeds } from '@/lib/api/public-home';
+import {
+  distributeAdSlotPair,
+  getSlotAdvertisements,
+  groupAdvertisementsBySlot,
+} from '@/lib/api/public-advertisements';
 import { searchPublicArticles } from '@/lib/api/public-articles';
 import { formatEnDate, formatFaDate } from '@/lib/format';
 
 export const metadata: Metadata = {
   title: 'خانه',
-  description: 'مهم‌ترین اخبار اقتصادی و تحلیلی — عصر تعادل',
+  description: 'مهم‌ترین اخبار اقتصادی و تحلیلی — نیرا نیوز',
   openGraph: {
     locale: 'fa_IR',
     type: 'website',
-    title: 'عصر تعادل | پایگاه خبری تحلیلی',
+    title: 'نیرا نیوز | پایگاه خبری تحلیلی',
   },
 };
 
@@ -46,8 +51,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       );
     }
 
-    const { hero, featured, latest, iranEconomy, worldEconomy, analytical, stories } =
+    const { hero, featured, latest, iranEconomy, worldEconomy, analytical, stories, advertisements, marketRates } =
       await loadHomepageFeeds();
+
+    const adGroups = groupAdvertisementsBySlot(advertisements);
+    const [adSlot0, adSlot1] = distributeAdSlotPair(advertisements);
+    const adBanner0 = getSlotAdvertisements(adGroups, 'ad-banner', 0);
+    const adBanner1 = getSlotAdvertisements(adGroups, 'ad-banner', 1);
 
     const shortNews = latest.slice(0, 8);
     const now = new Date();
@@ -62,8 +72,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               showDate
               dateLabel={`${formatFaDate(now.toISOString())} - ${formatEnDate(now)}`}
             />
-            <FeaturedNews hero={hero} featured={featured} latest={latest} />
-            <MarketTicker />
+            <FeaturedNews
+              hero={hero}
+              featured={featured}
+              latest={latest}
+              adSlot0={adSlot0}
+              adSlot1={adSlot1}
+            />
+            <MarketTicker rates={marketRates} />
           </div>
         </div>
 
@@ -78,7 +94,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <SectionHeader title="تحلیل‌های خبری" moreHref="/tag/analysis" />
         <AnalyticalNews articles={analytical} />
 
-        <AdBanners />
+        <AdBanners adBanner0={adBanner0} adBanner1={adBanner1} />
       </div>
     );
   } catch (error) {

@@ -19,6 +19,10 @@
     "migration:run": "pnpm --filter @news-platform/api migration:run",
     "migration:run:prod": "pnpm --filter @news-platform/api migration:run:prod",
     "seed:demo": "pnpm --filter @news-platform/api seed:demo",
+    "seed:panel-admins": "pnpm --filter @news-platform/api seed:panel-admins",
+    "seed:panel-admins:prod": "pnpm --filter @news-platform/api seed:panel-admins:prod",
+    "seed:advertisements": "pnpm --filter @news-platform/api seed:advertisements",
+    "seed:advertisements:prod": "pnpm --filter @news-platform/api seed:advertisements:prod",
     "diagnose:data": "pnpm --filter @news-platform/api diagnose:data",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\""

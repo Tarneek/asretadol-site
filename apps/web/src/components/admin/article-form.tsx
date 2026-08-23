@@ -23,7 +23,7 @@ export function ArticleForm({
   const selectedTagIds = new Set(article?.tags.map((t) => t.id) ?? []);
 
   return (
-    <form action={action} className="article-editor" encType="multipart/form-data">
+    <form action={action} className="article-editor article-editor--rtl" dir="rtl">
       <div className="article-editor__main">
         <section className="card">
           <header className="article-editor__card-header">
@@ -41,6 +41,7 @@ export function ArticleForm({
                 id="article-title"
                 name="title"
                 required
+                dir="rtl"
                 defaultValue={article?.title ?? ''}
                 placeholder="عنوان خبر را وارد کنید"
               />
@@ -70,6 +71,7 @@ export function ArticleForm({
                 id="article-excerpt"
                 name="excerpt"
                 rows={3}
+                dir="rtl"
                 defaultValue={article?.excerpt ?? ''}
                 placeholder="یک یا دو جمله دربارهٔ موضوع خبر…"
               />
@@ -211,6 +213,7 @@ export function ArticleForm({
               <input
                 id="article-seo-title"
                 name="seoTitle"
+                dir="rtl"
                 defaultValue={article?.seoTitle ?? ''}
                 placeholder="در صورت خالی بودن از عنوان مطلب استفاده می‌شود"
               />
@@ -223,6 +226,7 @@ export function ArticleForm({
                 id="article-seo-description"
                 name="seoDescription"
                 rows={3}
+                dir="rtl"
                 defaultValue={article?.seoDescription ?? ''}
                 placeholder="حداکثر حدود ۱۶۰ کاراکتر توصیه می‌شود"
               />

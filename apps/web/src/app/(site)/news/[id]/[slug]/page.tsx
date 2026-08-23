@@ -13,6 +13,7 @@ import {
   fetchLatestArticles,
 } from '@/lib/api/public-articles';
 import { generateArticleSlug } from '@/lib/url/generate-article-slug';
+import { absoluteUrl, getSiteUrl } from '@/lib/site-url';
 import { formatFaDate } from '@/lib/format';
 import {
   ApiUnavailableNotice,
@@ -23,11 +24,6 @@ type NewsArticlePageProps = {
   params: Promise<{ id: string; slug: string }>;
 };
 
-function getSiteUrl() {
-  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  return fromEnv || 'http://localhost:3000';
-}
-
 export async function generateMetadata({ params }: NewsArticlePageProps): Promise<Metadata> {
   const { id } = await params;
 
@@ -35,6 +31,7 @@ export async function generateMetadata({ params }: NewsArticlePageProps): Promis
     const article = await fetchArticleById(Number(id));
     const canonicalSlug = generateArticleSlug(article.title);
     const canonicalPath = `/news/${article.id}/${canonicalSlug}`;
+    const canonicalUrl = absoluteUrl(canonicalPath);
 
     return {
       metadataBase: new URL(getSiteUrl()),
@@ -46,9 +43,30 @@ export async function generateMetadata({ params }: NewsArticlePageProps): Promis
       openGraph: {
         locale: 'fa_IR',
         type: 'article',
+        url: canonicalUrl,
         title: article.seoTitle ?? article.title,
         description: article.seoDescription ?? article.excerpt ?? undefined,
-        images: article.featuredImage ? [article.featuredImage] : undefined,
+        images: article.featuredImage
+          ? [
+              article.featuredImage.startsWith('http')
+                ? article.featuredImage
+                : absoluteUrl(article.featuredImage),
+            ]
+          : undefined,
+        publishedTime: article.publishedAt,
+        modifiedTime: article.updatedAt,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: article.seoTitle ?? article.title,
+        description: article.seoDescription ?? article.excerpt ?? undefined,
+        images: article.featuredImage
+          ? [
+              article.featuredImage.startsWith('http')
+                ? article.featuredImage
+                : absoluteUrl(article.featuredImage),
+            ]
+          : undefined,
       },
     };
   } catch {
@@ -79,9 +97,40 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
 
     const categories = article.categories;
     const tags = article.tags;
+    const articleUrl = absoluteUrl(`/news/${article.id}/${expectedSlug}`);
+    const featuredImageUrl = article.featuredImage
+      ? article.featuredImage.startsWith('http')
+        ? article.featuredImage
+        : absoluteUrl(article.featuredImage)
+      : undefined;
+
+    const articleJsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'NewsArticle',
+      headline: article.title,
+      description: article.excerpt ?? article.seoDescription ?? undefined,
+      datePublished: article.publishedAt,
+      dateModified: article.updatedAt,
+      author: {
+        '@type': 'Person',
+        name: article.author.displayName,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'نیرا نیوز',
+        url: getSiteUrl(),
+      },
+      mainEntityOfPage: articleUrl,
+      url: articleUrl,
+      image: featuredImageUrl ? [featuredImageUrl] : undefined,
+    };
 
     return (
       <div className="site-container-fluid blog-page">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        />
         <Breadcrumbs
           items={[
             { label: 'خانه', href: '/' },

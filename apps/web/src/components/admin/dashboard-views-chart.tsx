@@ -7,6 +7,9 @@ type Props = {
 };
 
 export function DashboardViewsChart({ chart, unavailable = false }: Props) {
+  // Suppress hydration warning — chart day labels use locale formatting
+  // that can differ between SSR and client (Gregory month names in Farsi).
+  const suppressHydration = { suppressHydrationWarning: true } as const;
   const width = 640;
   const height = 220;
   const padX = 36;
@@ -91,7 +94,7 @@ export function DashboardViewsChart({ chart, unavailable = false }: Props) {
 
           {coords.map((c, i) => (
             <circle key={c.date} cx={c.x} cy={c.y} r={3.5} className="views-chart__dot">
-              <title>
+              <title {...suppressHydration}>
                 {formatFaChartDay(c.date)}: {formatFaNumber(c.views)} بازدید
               </title>
             </circle>
@@ -100,7 +103,7 @@ export function DashboardViewsChart({ chart, unavailable = false }: Props) {
           {coords.map(
             (c, i) =>
               labelIndices.has(i) ? (
-                <text key={`${c.date}-label`} x={c.x} y={height - 6} className="views-chart__axis-x" textAnchor="middle">
+                <text key={`${c.date}-label`} x={c.x} y={height - 6} className="views-chart__axis-x" textAnchor="middle" {...suppressHydration}>
                   {formatFaChartDay(c.date)}
                 </text>
               ) : null,

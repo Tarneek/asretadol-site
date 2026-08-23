@@ -78,3 +78,19 @@ export type AdminStory = {
   isActive: boolean;
   createdAt: string;
 };
+
+export type AdminAdvertisement = {
+  id: string;
+  title: string;
+  imageUrl: string;
+  linkUrl: string;
+  placement: 'ad-slot' | 'ad-banner';
+  slotIndex: number;
+  sortOrder: number;
+  isActive: boolean;
+  rotationEnabled: boolean;
+  rotationIntervalSeconds: number;
+  startsAt: string | null;
+  endsAt: string | null;
+  createdAt: string;
+};

@@ -6,10 +6,9 @@ export class CreateStoryDto {
   @MaxLength(255)
   title!: string;
 
-  @IsUrl({ require_tld: false }, { message: 'mediaUrl must be a valid URL' })
+  @IsString()
   @MaxLength(2048)
   mediaUrl!: string;
-
   @IsEnum(StoryMediaType)
   mediaType!: StoryMediaType;
 

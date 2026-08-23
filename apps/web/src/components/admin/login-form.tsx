@@ -36,19 +36,27 @@ export function LoginForm() {
           code?: string;
           message?: string;
         } | null;
-        if (response.status === 503 && payload?.code === 'API_NOT_CONFIGURED') {
-          setError('آدرس API تنظیم نشده است. متغیر NEXT_PUBLIC_API_URL را بررسی کنید.');
+        if (payload?.code === 'API_NOT_CONFIGURED') {
+          setError('آدرس API تنظیم نشده است. متغیر NEXT_PUBLIC_API_URL یا API_INTERNAL_URL را بررسی کنید.');
           return;
         }
-        if (response.status === 503 && payload?.code === 'API_UNAVAILABLE') {
-          setError('ارتباط با سرور برقرار نشد. پایگاه‌داده و سرویس API را اجرا کنید.');
+        if (payload?.code === 'API_UNAVAILABLE' || response.status === 503) {
+          setError('سرویس API در دسترس نیست. اتصال شبکه داخلی Docker یا وضعیت کانتینر API را بررسی کنید.');
           return;
         }
-        if (response.status === 400) {
+        if (payload?.code === 'API_ERROR' || response.status === 502) {
+          setError(payload?.message || 'خطا از سمت سرور API. لاگ‌های Nest را بررسی کنید.');
+          return;
+        }
+        if (response.status === 400 || payload?.code === 'VALIDATION_ERROR') {
           setError(payload?.message || 'شماره موبایل معتبر نیست.');
           return;
         }
-        setError('شماره موبایل یا رمز عبور نادرست است.');
+        if (response.status === 401 || payload?.code === 'INVALID_CREDENTIALS') {
+          setError(payload?.message || 'شماره موبایل یا رمز عبور نادرست است.');
+          return;
+        }
+        setError(payload?.message || 'ورود ناموفق بود. دوباره تلاش کنید.');
         return;
       }
 

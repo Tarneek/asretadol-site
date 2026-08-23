@@ -7,10 +7,11 @@ import {
 } from '@/components/icons/site-icons';
 
 const INTERNAL = [
+  { href: '/about', label: 'درباره ما' },
   { href: '#', label: 'قوانین و مقررات' },
   { href: '#', label: 'حفظ حریم خصوصی' },
   { href: '#', label: 'راهنمای استفاده' },
-  { href: '#contact', label: 'تماس با ما' },
+  { href: '/contact', label: 'تماس با ما' },
 ];
 
 const CATS_A = [

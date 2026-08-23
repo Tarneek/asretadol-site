@@ -90,6 +90,11 @@ export function tagHref(slug: string): string {
 
 export const NEWS_PLACEHOLDER_IMAGE_PATH = '/images/placeholder-news.svg';
 
+/** User uploads are served by nginx from the shared volume — not Next static/optimizer. */
+export function isUploadedMediaPath(url: string): boolean {
+  return url.startsWith('/uploads/');
+}
+
 export function imageOrPlaceholder(url: string | null | undefined): string {
   if (url && url.startsWith('/')) {
     return url;

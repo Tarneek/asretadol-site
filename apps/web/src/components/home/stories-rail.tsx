@@ -234,7 +234,7 @@ export function StoriesRail({ stories }: Props) {
             {activeStory.link ? (
               <div className="story-modal__footer">
                 <Link href={activeStory.link} className="btn-danger" target="_blank" rel="noreferrer">
-                  ?????? ????
+                  مشاهده خبر
                 </Link>
               </div>
             ) : null}

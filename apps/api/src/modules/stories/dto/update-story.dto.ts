@@ -8,10 +8,9 @@ export class UpdateStoryDto {
   title?: string;
 
   @IsOptional()
-  @IsUrl({ require_tld: false }, { message: 'mediaUrl must be a valid URL' })
+  @IsString()
   @MaxLength(2048)
   mediaUrl?: string;
-
   @IsOptional()
   @IsEnum(StoryMediaType)
   mediaType?: StoryMediaType;

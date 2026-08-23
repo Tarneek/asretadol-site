@@ -542,6 +542,18 @@
 }
 
 /* —— Article editor (CMS layout) —— */
+.article-editor--rtl,
+.article-editor--rtl .form-field input:not([dir='ltr']),
+.article-editor--rtl .form-field textarea,
+.article-editor--rtl .form-field select {
+  direction: rtl;
+  text-align: right;
+}
+
+.article-editor--rtl fieldset {
+  text-align: right;
+}
+
 .article-editor {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
@@ -1348,7 +1360,107 @@
   object-fit: cover;
 }
 
+.story-media-field__preview {
+  margin-top: 0.875rem;
+}
+
+.story-media-field__video {
+  width: 100%;
+  max-height: 220px;
+  display: block;
+  border-radius: var(--admin-radius-sm);
+  background: #000;
+  box-shadow: inset 0 0 0 1px var(--admin-border);
+}
+
+/* Jalali date-time picker (advertisement scheduling) */
+.jalali-datetime-field__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.jalali-datetime-field__input {
+  width: min(100%, 280px);
+  min-height: 42px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-input-bg);
+  color: var(--admin-text);
+  font-family: inherit;
+  font-size: 0.925rem;
+  direction: rtl;
+  text-align: right;
+}
+
+.jalali-datetime-field__picker {
+  direction: rtl;
+  z-index: 40;
+}
+
+.jalali-datetime-field .rmdp-wrapper,
+.jalali-datetime-field .rmdp-calendar {
+  direction: rtl;
+  font-family: inherit;
+}
+
+.jalali-datetime-field .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
+  background-color: rgba(157, 11, 15, 0.12);
+}
+
+.jalali-datetime-field .rmdp-day.rmdp-selected span:not(.highlight) {
+  background-color: var(--admin-accent, #9d0b0f);
+}
+
+.jalali-datetime-field .rmdp-arrow-container:hover {
+  background-color: rgba(157, 11, 15, 0.12);
+}
+
 /* —— Quill (light) —— */
+.article-rich-editor {
+  direction: rtl;
+}
+
+.article-rich-editor__file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.article-rich-editor__status {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--admin-muted);
+}
+
+.article-rich-editor__error {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--admin-danger);
+}
+
+.article-rich-editor .ql-toolbar {
+  direction: rtl;
+  text-align: right;
+}
+
+.article-rich-editor .ql-toolbar.ql-snow .ql-formats {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+.article-rich-editor .ql-toolbar.ql-snow .ql-formats:first-child {
+  margin-right: 0;
+}
+
 .article-rich-editor .ql-toolbar {
   border-radius: var(--admin-radius-sm) var(--admin-radius-sm) 0 0;
   border-color: var(--admin-border-strong) !important;
@@ -1368,6 +1480,40 @@
   line-height: 1.85;
   font-size: 0.9375rem;
   color: var(--admin-text);
+  direction: rtl;
+  text-align: right;
+}
+
+.article-rich-editor .ql-editor.ql-blank::before {
+  direction: rtl;
+  text-align: right;
+  right: 15px;
+  left: auto;
+}
+
+.article-rich-editor .ql-editor .ql-align-left {
+  text-align: left;
+  direction: ltr;
+}
+
+.article-rich-editor .ql-editor .ql-align-center {
+  text-align: center;
+}
+
+.article-rich-editor .ql-editor .ql-align-right {
+  text-align: right;
+}
+
+.article-rich-editor .ql-editor .ql-align-justify {
+  text-align: justify;
+}
+
+.article-rich-editor .ql-editor img,
+.article-rich-editor .ql-editor video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.5rem auto;
 }
 
 .article-rich-editor .ql-snow .ql-stroke {

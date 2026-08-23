@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { NEWS_PLACEHOLDER_IMAGE_PATH, imageOrPlaceholder } from '@/lib/format';
+import {
+  NEWS_PLACEHOLDER_IMAGE_PATH,
+  imageOrPlaceholder,
+  isUploadedMediaPath,
+} from '@/lib/format';
 
 type Props = {
   initialPath?: string | null;
@@ -15,6 +19,9 @@ export function ArticleFeaturedImageField({ initialPath }: Props) {
   const [hiddenPath, setHiddenPath] = useState(
     initialPath?.trim() || NEWS_PLACEHOLDER_IMAGE_PATH,
   );
+
+  const unoptimized =
+    previewUrl.startsWith('blob:') || isUploadedMediaPath(previewUrl);
 
   return (
     <div className="form-field article-image-field">
@@ -32,7 +39,7 @@ export function ArticleFeaturedImageField({ initialPath }: Props) {
           width={320}
           height={200}
           className="article-image-field__img"
-          unoptimized={previewUrl.startsWith('blob:')}
+          unoptimized={unoptimized}
         />
       </div>
       <input

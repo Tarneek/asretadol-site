@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Vazirmatn } from 'next/font/google';
+import { getSiteUrl } from '@/lib/site-url';
 import './globals.css';
 
 const vazirmatn = Vazirmatn({
@@ -9,17 +10,31 @@ const vazirmatn = Vazirmatn({
 });
 
 /** Bump when replacing public/favicon.png so browsers pick up the new icon. */
-const FAVICON_PATH = '/favicon.png?v=2';
+const FAVICON_PATH = '/favicon.png?v=3';
+const APPLE_TOUCH_ICON_PATH = '/apple-touch-icon.png?v=3';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: {
-    default: 'عصر تعادل | پایگاه خبری تحلیلی',
-    template: '%s | عصر تعادل',
+    default: 'نیرا نیوز | پایگاه خبری تحلیلی',
+    template: '%s | نیرا نیوز',
   },
-  description: 'پایگاه خبری تحلیلی عصر تعادل',
+  description: 'پایگاه خبری تحلیلی نیرا نیوز',
+  openGraph: {
+    locale: 'fa_IR',
+    type: 'website',
+    siteName: 'نیرا نیوز',
+    url: getSiteUrl(),
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
   icons: {
-    icon: [{ url: FAVICON_PATH, type: 'image/png' }],
-    apple: [{ url: FAVICON_PATH, type: 'image/png' }],
+    icon: [
+      { url: FAVICON_PATH, sizes: '32x32', type: 'image/png' },
+      { url: FAVICON_PATH, sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [{ url: APPLE_TOUCH_ICON_PATH, sizes: '180x180', type: 'image/png' }],
     shortcut: FAVICON_PATH,
   },
   other: {

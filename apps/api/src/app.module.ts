@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
@@ -15,6 +16,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { HealthModule } from './modules/health/health.module';
 import { PublicModule } from './modules/public/public.module';
 import { StoriesModule } from './modules/stories/stories.module';
+import { AdvertisementsModule } from './modules/advertisements/advertisements.module';
+import { MarketModule } from './modules/market/market.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { UsersModule } from './modules/users/users.module';
 import { SeedModule } from './seeds/seed.module';
@@ -23,6 +26,7 @@ import { SeedModule } from './seeds/seed.module';
   imports: [
     AppConfigModule,
     DatabaseModule,
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService<AppConfig, true>) => {
@@ -43,6 +47,8 @@ import { SeedModule } from './seeds/seed.module';
     CategoriesModule,
     TagsModule,
     StoriesModule,
+    AdvertisementsModule,
+    MarketModule,
     PublicModule,
     SeedModule,
   ],
