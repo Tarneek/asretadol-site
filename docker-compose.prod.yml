@@ -33,7 +33,7 @@ services:
     container_name: news-platform-api
     restart: unless-stopped
     env_file:
-      - ${ENV_FILE:-.env.production}
+      - ${ENV_FILE:-.env}
     environment:
       NODE_ENV: production
       DATABASE_HOST: postgres
@@ -69,8 +69,8 @@ services:
       context: .
       dockerfile: docker/web.Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://asretaadol.ir/api}
-        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://asretaadol.ir}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://niranews.com/api}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://niranews.com}
     container_name: news-platform-web
     restart: unless-stopped
     environment:
@@ -87,16 +87,20 @@ services:
     networks:
       - internal
 
-  # Path-based gateway for nginx-proxy (jwilder): / → web, /api → api, /uploads → volume
+  # Path-based gateway: / → web, /api → api, /uploads → volume
+  # Publishes 80 so ArvanCloud/origin (or local) can reach this stack when no
+  # external jwilder/nginx-proxy is present on the `net` network.
   nginx:
     image: nginx:1.27-alpine
     container_name: news-platform-nginx
     restart: unless-stopped
+    ports:
+      - '80:80'
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - uploads_data:/var/www/uploads:ro
     environment:
-      VIRTUAL_HOST: asretaadol.ir,www.asretaadol.ir
+      VIRTUAL_HOST: niranews.com,www.niranews.com
       VIRTUAL_PORT: '80'
     depends_on:
       api:

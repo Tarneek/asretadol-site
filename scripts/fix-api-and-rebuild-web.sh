@@ -22,11 +22,11 @@ test -f docker/nginx.conf
 # Load public URL from env file (do not print secrets)
 set -a
 # shellcheck disable=SC1091
-. ./.env.production
+. ./.env
 set +a
 
-: "${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL missing in .env.production}"
-: "${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL missing in .env.production}"
+: "${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL missing in .env}"
+: "${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL missing in .env}"
 echo "NEXT_PUBLIC_API_URL is set ($(echo "$NEXT_PUBLIC_API_URL" | sed 's#https://#https://#;s#http://#http://#'))"
 
 echo "=== 2) Ensure postgres on internal network with alias ==="
@@ -69,12 +69,12 @@ echo "=== 7) Health checks ==="
 echo -n "api internal: "
 docker exec news-platform-api node -e 'fetch("http://127.0.0.1:3020/api/health").then(r=>r.text()).then(t=>console.log(t)).catch(e=>console.error(String(e)))'
 echo -n "api via nginx: "
-curl -sS --max-time 15 -H 'Host: asretaadol.ir' http://127.0.0.1/api/health || true
+curl -sS --max-time 15 -H 'Host: niranews.com' http://127.0.0.1/api/health || true
 echo
 echo -n "site status: "
-curl -sS -o /tmp/asre-home.html -w '%{http_code}' --max-time 25 -H 'Host: asretaadol.ir' http://127.0.0.1/
+curl -sS -o /tmp/niranews-home.html -w '%{http_code}' --max-time 25 -H 'Host: niranews.com' http://127.0.0.1/
 echo
 echo "page markers:"
-grep -oE 'NEXT_PUBLIC_API_URL|اتصال به API|پیکربندی نشده|مهم‌ترین اخبار|اقتصاد ایران' /tmp/asre-home.html | sort | uniq || true
+grep -oE 'NEXT_PUBLIC_API_URL|اتصال به API|پیکربندی نشده|مهم‌ترین اخبار|اقتصاد ایران' /tmp/niranews-home.html | sort | uniq || true
 
 echo "=== DONE ==="

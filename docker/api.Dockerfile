@@ -1,5 +1,6 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
+RUN apk add --no-cache libc6-compat python3 make g++
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
@@ -19,22 +20,29 @@ COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
-ARG NEXT_PUBLIC_API_URL=https://niranews.com/api
-ARG NEXT_PUBLIC_SITE_URL=https://niranews.com
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
-ENV NEXT_OUTPUT=standalone
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm --filter @news-platform/web build
+RUN pnpm --filter @news-platform/api build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3010
-ENV HOSTNAME=0.0.0.0
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder /app/apps/web/public ./apps/web/public
-EXPOSE 3010
-CMD ["node", "apps/web/server.js"]
+ENV API_PORT=3020
+RUN apk add --no-cache libc6-compat
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json apps/web/
+COPY apps/api/package.json apps/api/
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm config set fetch-timeout 600000 && \
+    pnpm config set fetch-retries 10 && \
+    pnpm config set network-concurrency 3 && \
+    pnpm install --frozen-lockfile --prod
+
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+COPY docker/api-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh \
+  && mkdir -p /app/uploads/news /app/uploads/videos
+
+EXPOSE 3020
+ENTRYPOINT ["/entrypoint.sh"]

@@ -24,10 +24,10 @@ docker restart news-platform-nginx
 sleep 2
 
 echo "=== HEADERS ==="
-curl -sI -H 'Host: asretaadol.ir' --max-time 15 http://127.0.0.1/ | head -10
+curl -sI -H 'Host: niranews.com' --max-time 15 http://127.0.0.1/ | head -10
 
 echo "=== NAV LABELS ==="
-curl -sL -H 'Host: asretaadol.ir' --max-time 25 http://127.0.0.1/ \
+curl -sL -H 'Host: niranews.com' --max-time 25 http://127.0.0.1/ \
   | grep -oE 'علاقه‌مندی‌ها|درباره ما|اقتصاد ایران|خانه' \
   | sort | uniq || true
 

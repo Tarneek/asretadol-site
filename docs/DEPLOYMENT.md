@@ -16,7 +16,7 @@ Copy `.env.example` → `.env` for local use. In staging/production, inject secr
 | `JWT_ACCESS_SECRET` | ≥32 chars; **not** placeholder text |
 | `JWT_REFRESH_SECRET` | ≥32 chars; distinct from access secret |
 | `JWT_ACCESS_EXPIRES_IN` / `JWT_REFRESH_EXPIRES_IN` | e.g. `15m`, `7d` |
-| `CORS_ORIGINS` | Comma-separated front-end origins |
+| `CORS_ORIGINS` | Comma-separated front-end origins, e.g. `https://niranews.com,https://www.niranews.com` |
 
 ### Recommended (API)
 
@@ -31,7 +31,8 @@ Copy `.env.example` → `.env` for local use. In staging/production, inject secr
 
 | Variable | Notes |
 |----------|--------|
-| `NEXT_PUBLIC_API_URL` | Full public API base **including** `/api`, e.g. `https://api.example.com/api`. **Required** for production/staging builds. In local `pnpm dev`, defaults to `http://localhost:3001/api` if unset. |
+| `NEXT_PUBLIC_API_URL` | Full public API base **including** `/api`, e.g. `https://niranews.com/api`. **Required** for production/staging builds. In local `pnpm dev`, defaults to `http://localhost:3001/api` if unset. |
+| `NEXT_PUBLIC_SITE_URL` | Public site origin for canonical URLs, Open Graph, `robots.txt`, and `sitemap.xml`, e.g. `https://niranews.com` (no trailing slash). |
 | `NEXT_OUTPUT` | Set `standalone` for Docker/container Next.js builds |
 | `PORT` | Optional; Next `start` port (default 3000) |
 
@@ -160,3 +161,39 @@ GitHub Actions workflow `.github/workflows/ci.yml` runs on push/PR to `main`/`ma
 4. build API + web
 
 Add a separate deploy workflow when your host is chosen (Fly, Railway, Vercel+API VM, Kubernetes, etc.).
+
+---
+
+## Production domain (`niranews.com`)
+
+### Environment (repo-root `.env` on this host)
+
+`docker-compose.prod.yml` loads `${ENV_FILE:-.env}` for the API service.
+
+```env
+NEXT_PUBLIC_API_URL=https://niranews.com/api
+NEXT_PUBLIC_SITE_URL=https://niranews.com
+CORS_ORIGINS=https://niranews.com,https://www.niranews.com
+TRUST_PROXY=true
+```
+
+Rebuild the **web** image after changing `NEXT_PUBLIC_*` — they are baked in at build time.
+
+### Google Search Console
+
+No verification file or meta tag exists in the repo yet. After deploy, add either:
+
+- `<meta name="google-site-verification" content="…" />` in `apps/web/src/app/layout.tsx` under `metadata.other`, or
+- a static file at `apps/web/public/google<token>.html`
+
+### Nginx host notes
+
+`docker/nginx.conf` serves `niranews.com` and `www.niranews.com`, with www → apex `301` to `https://niranews.com$request_uri`. Path routing for `/`, `/api/`, and `/uploads/` is unchanged.
+
+```nginx
+server {
+  listen 443 ssl http2;
+  server_name www.niranews.com;
+  return 301 https://niranews.com$request_uri;
+}
+```

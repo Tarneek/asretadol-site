@@ -12,7 +12,7 @@ test -f "$DUMP"
 # Read credentials from production env (do not echo secrets)
 set -a
 # shellcheck disable=SC1091
-. ./.env.production
+. ./.env
 set +a
 
 PGUSER="${POSTGRES_USER:-${DATABASE_USER:-news}}"
