@@ -33,6 +33,26 @@ function parseCsv(value: unknown): string[] {
   return [];
 }
 
+/** Avoid Boolean("false") === true when enableImplicitConversion is on. */
+function parseEnvBoolean(value: unknown): boolean {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    return value === 1;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(normalized)) {
+      return true;
+    }
+    if (['false', '0', 'no', 'off', ''].includes(normalized)) {
+      return false;
+    }
+  }
+  return false;
+}
+
 export class EnvironmentVariables {
   @IsEnum(NodeEnv)
   NODE_ENV: NodeEnv = NodeEnv.Development;
@@ -104,16 +124,16 @@ export class EnvironmentVariables {
   THROTTLE_AUTH_LIMIT?: number = 20;
 
   @IsOptional()
-  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  @Transform(({ obj }) => parseEnvBoolean(obj.TRUST_PROXY))
   @IsBoolean()
   TRUST_PROXY?: boolean = false;
 
   @IsOptional()
-  @Transform(({ value }) => value === true || value === 'true')
+  @Transform(({ obj }) => parseEnvBoolean(obj.SEED_ADMIN_ENABLED))
   @IsBoolean()
   SEED_ADMIN_ENABLED?: boolean = false;
 
-  @ValidateIf((env) => env.SEED_ADMIN_ENABLED === true || env.SEED_ADMIN_ENABLED === 'true')
+  @ValidateIf((env) => env.SEED_ADMIN_ENABLED === true)
   @IsString()
   @Matches(/^09\d{9}$/, { message: 'SEED_ADMIN_MOBILE must be 09xxxxxxxxx' })
   SEED_ADMIN_MOBILE?: string;
@@ -122,7 +142,7 @@ export class EnvironmentVariables {
   @IsEmail()
   SEED_ADMIN_EMAIL?: string;
 
-  @ValidateIf((env) => env.SEED_ADMIN_ENABLED === true || env.SEED_ADMIN_ENABLED === 'true')
+  @ValidateIf((env) => env.SEED_ADMIN_ENABLED === true)
   @IsString()
   @MinLength(12)
   SEED_ADMIN_PASSWORD?: string;
