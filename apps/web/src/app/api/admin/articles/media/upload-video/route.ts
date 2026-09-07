@@ -15,8 +15,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'فایل ویدیو الزامی است.' }, { status: 400 });
     }
 
-    const path = await uploadAdminArticleVideo(file);
-    return NextResponse.json({ path });
+    const kindParam = new URL(request.url).searchParams.get('kind');
+    const path = await uploadAdminArticleVideo(
+      file,
+      kindParam === 'content' ? 'content' : undefined,
+    );
+    return NextResponse.json({ path, url: path });
   } catch (error) {
     const message =
       error instanceof Error && error.message.trim()

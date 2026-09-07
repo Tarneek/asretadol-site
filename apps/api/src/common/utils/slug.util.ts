@@ -1,10 +1,14 @@
+/**
+ * Unicode-friendly slug for Persian SEO.
+ * Keeps Persian/Arabic letters; does not transliterate to Latin.
+ */
 export function slugify(value: string): string {
   return value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[\u200c\u200C]/g, '-')
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^\p{L}\p{N}-]+/gu, '-')
+    .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 200);
 }

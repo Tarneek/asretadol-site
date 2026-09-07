@@ -1,5 +1,7 @@
 import Quill from 'quill';
+import { BlockEmbed } from 'quill/blots/block';
 import { AlignStyle } from 'quill/formats/align';
+import Image from 'quill/formats/image';
 import icons from 'quill/ui/icons';
 
 /** Allow explicit left alignment (Quill defaults omit "left" from the whitelist). */
@@ -19,6 +21,41 @@ iconSet.uploadVideo = iconSet.video;
 iconSet.alignRight = iconSet.align.right;
 iconSet.alignLeft = iconSet.align[''];
 iconSet.alignCenter = iconSet.align.center;
+
+/** Quill's default image sanitizer rejects relative `/uploads/...` URLs. */
+const originalImageSanitize = Image.sanitize.bind(Image);
+Image.sanitize = (url: string) => {
+  if (typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')) {
+    return url;
+  }
+  return originalImageSanitize(url);
+};
+
+const originalImageMatch = Image.match.bind(Image);
+Image.match = (url: string) =>
+  originalImageMatch(url) || /\.(jpe?g|gif|png|webp)(\?.*)?$/i.test(url);
+
+class HtmlVideoBlot extends BlockEmbed {
+  static blotName = 'htmlVideo';
+  static tagName = 'VIDEO';
+
+  static create(value: string) {
+    const node = super.create(value) as HTMLVideoElement;
+    node.setAttribute('src', value);
+    node.setAttribute('controls', 'true');
+    node.setAttribute('playsinline', 'true');
+    node.setAttribute('preload', 'metadata');
+    node.style.maxWidth = '100%';
+    node.style.height = 'auto';
+    return node;
+  }
+
+  static value(node: HTMLElement) {
+    return node.getAttribute('src') ?? '';
+  }
+}
+
+Quill.register(HtmlVideoBlot, true);
 
 export function applyBlockAlign(
   quill: QuillEditor,

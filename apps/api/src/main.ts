@@ -3,9 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import { resolve } from 'node:path';
 import { AppModule } from './app.module';
 import { AppConfig } from './config/configuration';
 import { NodeEnv } from './config/env.validation';
+import {
+  ensureBlogUploadDirectories,
+} from './modules/articles/article-upload.paths';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -29,6 +33,7 @@ async function bootstrap(): Promise<void> {
     helmet({
       contentSecurityPolicy: nodeEnv === NodeEnv.Production,
       crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
 
@@ -40,6 +45,11 @@ async function bootstrap(): Promise<void> {
   });
 
   app.setGlobalPrefix('api');
+
+  const blogRoot = ensureBlogUploadDirectories();
+  app.useStaticAssets(resolve(blogRoot, '..'), {
+    prefix: '/uploads/',
+  });
 
   // Rich article HTML and large JSON payloads (default ~100kb is too small).
   app.useBodyParser('json', { limit: '5mb' });

@@ -37,3 +37,8 @@ coverage
 
 # local DB dumps (never commit)
 local_db_backup*.sql
+
+# uploaded blog media (keep directory placeholders)
+apps/api/uploads/blog/**
+!apps/api/uploads/blog/**/
+!apps/api/uploads/blog/**/.gitkeep

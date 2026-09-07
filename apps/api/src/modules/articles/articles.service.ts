@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ArticleStatus } from '../../common/enums/article-status.enum';
@@ -400,10 +401,7 @@ export class ArticlesService {
   }
 
   private async resolveUniqueSlug(raw: string, excludeId?: number): Promise<string> {
-    const base = slugify(raw);
-    if (!base) {
-      throw new BadRequestException('Unable to generate a valid slug');
-    }
+    const base = slugify(raw) || `article-${randomUUID().slice(0, 8)}`;
 
     let candidate = base;
     let suffix = 2;

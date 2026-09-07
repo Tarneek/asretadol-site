@@ -14,9 +14,37 @@ import {
 } from '@/lib/api/admin-articles';
 import { NEWS_PLACEHOLDER_IMAGE_PATH } from '@/lib/format';
 import { sanitizeArticleHtmlForStorage } from '@/lib/sanitize-html';
+import { userFacingApiError } from '@/lib/api/user-facing-error';
+import { generateArticleSlug } from '@/lib/url/generate-article-slug';
 
 function actionErrorRedirect(path: string, message: string): never {
   redirect(`${path}?error=${encodeURIComponent(message)}`);
+}
+
+function isNextRedirect(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'digest' in error &&
+    typeof (error as { digest: unknown }).digest === 'string' &&
+    (error as { digest: string }).digest.startsWith('NEXT_REDIRECT')
+  );
+}
+
+async function sanitizeContentOrRedirect(rawContent: string, errorPath: string): Promise<string> {
+  try {
+    const content = await sanitizeArticleHtmlForStorage(rawContent);
+    const text = content.replace(/<[^>]+>/g, '').replace(/&nbsp;/gi, ' ').trim();
+    if (!text) {
+      actionErrorRedirect(errorPath, 'متن مطلب را وارد کنید.');
+    }
+    return content;
+  } catch (error) {
+    if (isNextRedirect(error)) {
+      throw error;
+    }
+    actionErrorRedirect(errorPath, 'پردازش متن مطلب ممکن نشد. دوباره تلاش کنید.');
+  }
 }
 
 async function resolveFeaturedImageFromForm(
@@ -65,14 +93,18 @@ async function resolveArticleVideoFromForm(
 
 export async function createArticleAction(formData: FormData) {
   const title = String(formData.get('title') ?? '').trim();
-  const slug = String(formData.get('slug') ?? '').trim();
+  if (!title) {
+    actionErrorRedirect('/admin/articles/new', 'عنوان مطلب الزامی است.');
+  }
+  const slug =
+    String(formData.get('slug') ?? '').trim() || generateArticleSlug(title);
   const rawContent = String(formData.get('content') ?? '').trim();
-  const content = await sanitizeArticleHtmlForStorage(rawContent);
+  const content = await sanitizeContentOrRedirect(rawContent, '/admin/articles/new');
   const excerpt = String(formData.get('excerpt') ?? '').trim();
   const seoTitle = String(formData.get('seoTitle') ?? '').trim();
   const seoDescription = String(formData.get('seoDescription') ?? '').trim();
-  const categoryIds = formData.getAll('categoryIds').map(String);
-  const tagIds = formData.getAll('tagIds').map(String);
+  const categoryIds = formData.getAll('categoryIds').map(String).filter(Boolean);
+  const tagIds = formData.getAll('tagIds').map(String).filter(Boolean);
   const isHero = formData.get('isHero') === '1';
   const isFeatured = formData.get('isFeatured') === '1';
   const isBreaking = formData.get('isBreaking') === '1';
@@ -80,45 +112,68 @@ export async function createArticleAction(formData: FormData) {
   let videoUrl: string | null;
   try {
     ({ hasVideo, videoUrl } = await resolveArticleVideoFromForm(formData));
-  } catch {
+  } catch (error) {
+    if (isNextRedirect(error)) {
+      throw error;
+    }
     actionErrorRedirect(
       '/admin/articles/new',
-      'بارگذاری ویدیو ممکن نشد. اندازه و نوع فایل را بررسی کنید.',
+      userFacingApiError(error, 'بارگذاری ویدیو ممکن نشد. اندازه و نوع فایل را بررسی کنید.'),
     );
   }
 
   let featuredImage: string;
   try {
     featuredImage = await resolveFeaturedImageFromForm(formData);
-  } catch {
+  } catch (error) {
+    if (isNextRedirect(error)) {
+      throw error;
+    }
     actionErrorRedirect(
       '/admin/articles/new',
-      'بارگذاری تصویر ممکن نشد. اندازه و نوع فایل را بررسی کنید.',
+      userFacingApiError(error, 'بارگذاری تصویر ممکن نشد. اندازه و نوع فایل را بررسی کنید.'),
     );
+  }
+
+  const payload: Record<string, unknown> = {
+    title,
+    slug,
+    content,
+    excerpt: excerpt || null,
+    seoTitle: seoTitle || null,
+    seoDescription: seoDescription || null,
+    featuredImage,
+    isHero,
+    isFeatured,
+    isBreaking,
+    hasVideo,
+  };
+  if (categoryIds.length > 0) {
+    payload.categoryIds = categoryIds;
+  }
+  if (tagIds.length > 0) {
+    payload.tagIds = tagIds;
+  }
+  if (hasVideo) {
+    payload.videoUrl = videoUrl;
   }
 
   let article;
   try {
-    article = await createAdminArticle({
-      title,
-      ...(slug ? { slug } : {}),
-      content,
-      excerpt: excerpt || null,
-      seoTitle: seoTitle || null,
-      seoDescription: seoDescription || null,
-      featuredImage,
-      categoryIds,
-      tagIds,
-      isHero,
-      isFeatured,
-      isBreaking,
-      hasVideo,
-      videoUrl,
-    });
-  } catch {
+    article = await createAdminArticle(payload);
+  } catch (error) {
+    if (isNextRedirect(error)) {
+      throw error;
+    }
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[createArticle]', error);
+    }
     actionErrorRedirect(
       '/admin/articles/new',
-      'ثبت مطلب ممکن نشد. ورودی‌ها را بررسی کنید و دوباره تلاش کنید.',
+      userFacingApiError(
+        error,
+        'ثبت مطلب ممکن نشد. ورودی‌ها را بررسی کنید و دوباره تلاش کنید.',
+      ),
     );
   }
 
@@ -130,12 +185,12 @@ export async function updateArticleAction(id: number, formData: FormData) {
   const title = String(formData.get('title') ?? '').trim();
   const slug = String(formData.get('slug') ?? '').trim();
   const rawContent = String(formData.get('content') ?? '').trim();
-  const content = await sanitizeArticleHtmlForStorage(rawContent);
+  const content = await sanitizeContentOrRedirect(rawContent, `/admin/articles/${id}`);
   const excerpt = String(formData.get('excerpt') ?? '').trim();
   const seoTitle = String(formData.get('seoTitle') ?? '').trim();
   const seoDescription = String(formData.get('seoDescription') ?? '').trim();
-  const categoryIds = formData.getAll('categoryIds').map(String);
-  const tagIds = formData.getAll('tagIds').map(String);
+  const categoryIds = formData.getAll('categoryIds').map(String).filter(Boolean);
+  const tagIds = formData.getAll('tagIds').map(String).filter(Boolean);
   const isHero = formData.get('isHero') === '1';
   const isFeatured = formData.get('isFeatured') === '1';
   const isBreaking = formData.get('isBreaking') === '1';
@@ -174,18 +229,24 @@ export async function updateArticleAction(id: number, formData: FormData) {
       seoTitle: seoTitle || null,
       seoDescription: seoDescription || null,
       featuredImage,
-      categoryIds,
-      tagIds,
+      ...(categoryIds.length > 0 ? { categoryIds } : {}),
+      ...(tagIds.length > 0 ? { tagIds } : {}),
       isHero,
       isFeatured,
       isBreaking,
       hasVideo,
-      videoUrl,
+      ...(hasVideo ? { videoUrl } : {}),
     });
-  } catch {
+  } catch (error) {
+    if (isNextRedirect(error)) {
+      throw error;
+    }
     actionErrorRedirect(
       `/admin/articles/${id}`,
-      'ذخیره مطلب ممکن نشد. ورودی‌ها را بررسی کنید و دوباره تلاش کنید.',
+      userFacingApiError(
+        error,
+        'ذخیره مطلب ممکن نشد. ورودی‌ها را بررسی کنید و دوباره تلاش کنید.',
+      ),
     );
   }
 

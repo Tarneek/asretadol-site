@@ -3,9 +3,16 @@ import {
   ARTICLE_PLACEHOLDER_IMAGE_PATH,
   ARTICLE_UPLOAD_URL_PREFIX,
   ARTICLE_VIDEO_UPLOAD_URL_PREFIX,
+  BLOG_CONTENT_UPLOAD_URL_PREFIX,
+  BLOG_UPLOAD_URL_PREFIX,
+  type BlogMediaKind,
 } from './article-media.constants';
 import { ensureArticleUploadDirectory } from './article-image-upload.options';
 import { ensureArticleVideoUploadDirectory } from './article-video-upload.options';
+import {
+  buildBlogPublicPath,
+  ensureBlogUploadDirectories,
+} from './article-upload.paths';
 
 @Injectable()
 export class ArticleMediaService {
@@ -17,8 +24,16 @@ export class ArticleMediaService {
     return ensureArticleUploadDirectory();
   }
 
+  ensureBlogDirectories(): string {
+    return ensureBlogUploadDirectories();
+  }
+
   buildPublicPath(filename: string): string {
     return `${ARTICLE_UPLOAD_URL_PREFIX}${filename}`;
+  }
+
+  buildBlogPublicPath(kind: BlogMediaKind, filename: string): string {
+    return buildBlogPublicPath(kind, filename);
   }
 
   buildVideoPublicPath(filename: string): string {
@@ -37,6 +52,8 @@ export class ArticleMediaService {
     }
     if (
       trimmed.startsWith(ARTICLE_UPLOAD_URL_PREFIX) ||
+      trimmed.startsWith(`${BLOG_UPLOAD_URL_PREFIX}main/`) ||
+      trimmed.startsWith(`${BLOG_UPLOAD_URL_PREFIX}thumbnails/`) ||
       trimmed.startsWith('/images/')
     ) {
       return trimmed;
@@ -52,11 +69,14 @@ export class ArticleMediaService {
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       return trimmed;
     }
-    if (trimmed.startsWith(ARTICLE_VIDEO_UPLOAD_URL_PREFIX)) {
+    if (
+      trimmed.startsWith(ARTICLE_VIDEO_UPLOAD_URL_PREFIX) ||
+      trimmed.startsWith(BLOG_CONTENT_UPLOAD_URL_PREFIX)
+    ) {
       return trimmed;
     }
     throw new BadRequestException(
-      'Video must be an https URL or a path under /uploads/videos/.',
+      'Video must be an https URL or a path under /uploads/videos/ or /uploads/blog/content/.',
     );
   }
 }

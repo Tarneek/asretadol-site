@@ -139,9 +139,11 @@ export function SiteHeader() {
             <Image
               src="/img/logo-top.png"
               alt="نیرا نیوز — پایگاه خبری تحلیلی"
-              width={240}
-              height={60}
+              fill
+              sizes="(max-width: 576px) 70vw, 280px"
               className="site-header__logo"
+              style={{ objectFit: 'contain' }}
+              unoptimized
               priority
             />
           </Link>

@@ -268,20 +268,23 @@
 }
 
 .site-header__brand {
-  display: inline-flex;
-  align-items: center;
+  position: relative;
+  display: block;
   flex-shrink: 0;
+  align-self: center;
+  height: calc(100% - 6px);
+  width: calc((var(--site-header-h) - 6px) * 321 / 84);
+  max-width: min(100%, 72vw);
+  margin-block: 3px;
+  box-sizing: border-box;
   line-height: 0;
+  overflow: hidden;
   color: unset;
   text-decoration: none;
 }
 
 .site-header__logo {
-  display: block !important;
-  width: auto !important;
-  height: 48px !important;
-  max-width: min(220px, 42vw);
-  object-fit: contain;
+  object-fit: contain !important;
   object-position: right center;
 }
 
@@ -745,11 +748,6 @@
 @media (max-width: 576px) {
   .site-header {
     --site-header-h: 68px;
-  }
-
-  .site-header__logo {
-    height: 42px !important;
-    max-width: min(190px, 58vw);
   }
 
   .site-header__menu-btn {

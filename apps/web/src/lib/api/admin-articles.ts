@@ -91,24 +91,46 @@ export async function deleteAdminArticle(id: number): Promise<void> {
   await adminApiFetch<void>(`/articles/${id}`, { method: 'DELETE' });
 }
 
-export async function uploadAdminArticleImage(file: File): Promise<string> {
+export async function uploadAdminArticleImage(
+  file: File,
+  kind?: 'main' | 'thumbnails' | 'content',
+): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
-  const result = await adminApiFetch<{ path: string }>('/articles/media/upload', {
-    method: 'POST',
-    body: formData,
-  });
-  return result.path;
+  const result = await adminApiFetch<{ path?: string; url?: string }>(
+    '/articles/media/upload',
+    {
+      method: 'POST',
+      body: formData,
+      searchParams: kind ? { kind } : undefined,
+    },
+  );
+  const publicPath = (result.url ?? result.path)?.trim();
+  if (!publicPath) {
+    throw new Error('Upload response did not include a public URL.');
+  }
+  return publicPath;
 }
 
-export async function uploadAdminArticleVideo(file: File): Promise<string> {
+export async function uploadAdminArticleVideo(
+  file: File,
+  kind?: 'content',
+): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
-  const result = await adminApiFetch<{ path: string }>('/articles/media/upload-video', {
-    method: 'POST',
-    body: formData,
-  });
-  return result.path;
+  const result = await adminApiFetch<{ path?: string; url?: string }>(
+    '/articles/media/upload-video',
+    {
+      method: 'POST',
+      body: formData,
+      searchParams: kind ? { kind } : undefined,
+    },
+  );
+  const publicPath = (result.url ?? result.path)?.trim();
+  if (!publicPath) {
+    throw new Error('Upload response did not include a public URL.');
+  }
+  return publicPath;
 }
 
 export async function setAdminArticleFeatured(

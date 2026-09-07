@@ -26,7 +26,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV API_PORT=3020
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat su-exec
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -42,7 +42,14 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY docker/api-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh \
-  && mkdir -p /app/uploads/news /app/uploads/videos
+  && mkdir -p \
+    /srv/uploads/blog/thumbnails \
+    /srv/uploads/blog/main \
+    /srv/uploads/blog/content \
+    /srv/uploads/news \
+    /srv/uploads/videos \
+    /app/uploads/news \
+    /app/uploads/videos
 
 EXPOSE 3020
 ENTRYPOINT ["/entrypoint.sh"]

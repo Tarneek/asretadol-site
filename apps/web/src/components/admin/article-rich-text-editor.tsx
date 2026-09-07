@@ -8,8 +8,6 @@ import { createAlignHandler } from '@/lib/article-quill-setup';
 import {
   ARTICLE_EDITOR_IMAGE_ACCEPT,
   ARTICLE_EDITOR_VIDEO_ACCEPT,
-  buildEditorImageHtml,
-  buildEditorVideoHtml,
   uploadArticleEditorMedia,
 } from '@/lib/article-editor-media';
 import 'react-quill-new/dist/quill.snow.css';
@@ -27,6 +25,8 @@ const EDITOR_FORMATS = [
   'align',
   'blockquote',
   'link',
+  'image',
+  'htmlVideo',
 ];
 
 type Props = {
@@ -45,17 +45,18 @@ export function ArticleRichTextEditor({ initialHtml = '', name = 'content' }: Pr
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadKindRef = useRef<UploadKind>('image');
 
-  const insertHtmlAtCursor = useCallback((html: string) => {
+  const insertMediaAtCursor = useCallback((kind: UploadKind, url: string) => {
     const editor = quillRef.current?.getEditor();
     if (!editor) {
       return;
     }
 
     const range = editor.getSelection(true);
-    const index = range?.index ?? editor.getLength();
-    editor.clipboard.dangerouslyPasteHTML(index, html, 'user');
-    editor.setSelection(index + 1, 0, 'user');
-    setValue(editor.getSemanticHTML());
+    const index = range?.index ?? Math.max(0, editor.getLength() - 1);
+    editor.insertEmbed(index, kind === 'video' ? 'htmlVideo' : 'image', url, 'user');
+    editor.insertText(index + 1, '\n', 'user');
+    editor.setSelection(index + 2, 0, 'user');
+    setValue(editor.root.innerHTML);
   }, []);
 
   const openUploadPicker = useCallback((kind: UploadKind) => {
@@ -89,10 +90,8 @@ export function ArticleRichTextEditor({ initialHtml = '', name = 'content' }: Pr
       setUploadError(null);
 
       try {
-        const path = await uploadArticleEditorMedia(file, kind);
-        insertHtmlAtCursor(
-          kind === 'video' ? buildEditorVideoHtml(path) : buildEditorImageHtml(path),
-        );
+        const url = await uploadArticleEditorMedia(file, kind);
+        insertMediaAtCursor(kind, url);
       } catch (error) {
         const message =
           error instanceof Error && error.message.trim()
@@ -104,7 +103,7 @@ export function ArticleRichTextEditor({ initialHtml = '', name = 'content' }: Pr
         setUploading(false);
       }
     },
-    [insertHtmlAtCursor],
+    [insertMediaAtCursor],
   );
 
   const modules = useMemo(

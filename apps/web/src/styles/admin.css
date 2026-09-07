@@ -444,19 +444,45 @@
 
 .admin-root fieldset {
   border: none;
-  border-radius: var(--admin-radius-sm);
-  padding: 1.125rem;
+  padding: 0;
   margin: 0;
   min-width: 0;
-  background: var(--admin-surface-muted);
-  box-shadow: inset 0 0 0 1px var(--admin-border);
+  background: transparent;
 }
 
 .admin-root legend {
   font-weight: 600;
   font-size: 0.8125rem;
-  padding: 0 0.25rem;
+  padding: 0;
   color: var(--admin-text);
+  letter-spacing: -0.01em;
+}
+
+.taxonomy-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* Native <legend> sits on the fieldset border; float it into a normal label row. */
+.taxonomy-fieldset legend {
+  float: right;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+  text-align: right;
+  background: transparent;
+}
+
+.taxonomy-fieldset__body {
+  clear: both;
+  background: var(--admin-surface-muted);
+  box-shadow: inset 0 0 0 1px var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  padding: 1rem 1.125rem;
+  min-width: 0;
 }
 
 .checkbox-grid {
@@ -550,7 +576,9 @@
   text-align: right;
 }
 
-.article-editor--rtl fieldset {
+.article-editor--rtl fieldset,
+.article-editor--rtl .taxonomy-fieldset legend,
+.article-editor--rtl .taxonomy-fieldset__body {
   text-align: right;
 }
 

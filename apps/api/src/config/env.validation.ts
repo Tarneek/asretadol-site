@@ -151,6 +151,23 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   SEED_ADMIN_DISPLAY_NAME?: string;
+
+  /** Absolute root for blog media (thumbnails/main/content). */
+  @IsOptional()
+  @IsString()
+  UPLOAD_DIR?: string;
+
+  @IsOptional()
+  @IsString()
+  BLOG_UPLOAD_DIR?: string;
+
+  @IsOptional()
+  @IsString()
+  ARTICLE_UPLOAD_DIR?: string;
+
+  @IsOptional()
+  @IsString()
+  ARTICLE_VIDEO_UPLOAD_DIR?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

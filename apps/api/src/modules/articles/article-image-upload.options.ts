@@ -1,15 +1,24 @@
 import { BadRequestException } from '@nestjs/common';
 import { diskStorage, type File as MulterFile } from 'multer';
 import type { Request } from 'express';
-import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync } from 'node:fs';
-import { extname, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import {
   ARTICLE_IMAGE_MAX_BYTES,
   ARTICLE_IMAGE_MIME_TYPES,
 } from './article-media.constants';
+import {
+  buildUniqueUploadFilename,
+  ensureBlogUploadDirectory,
+  parseBlogMediaKind,
+} from './article-upload.paths';
 
-const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+const BLOG_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const LEGACY_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+const LEGACY_IMAGE_MIME = new Set([
+  ...ARTICLE_IMAGE_MIME_TYPES,
+  'image/gif',
+]);
 
 export function resolveArticleUploadDirectory(): string {
   const fromEnv = process.env.ARTICLE_UPLOAD_DIR?.trim();
@@ -30,39 +39,45 @@ export function ensureArticleUploadDirectory(): string {
 export const ARTICLE_IMAGE_MULTER_OPTIONS = {
   storage: diskStorage({
     destination: (
-      _req: Request,
+      req: Request,
       _file: MulterFile,
       cb: (error: Error | null, destination: string) => void,
     ) => {
       try {
-        cb(null, ensureArticleUploadDirectory());
+        const kind = parseBlogMediaKind(req.query?.kind);
+        cb(
+          null,
+          kind ? ensureBlogUploadDirectory(kind) : ensureArticleUploadDirectory(),
+        );
       } catch (error) {
         cb(error as Error, '');
       }
     },
     filename: (
-      _req: Request,
+      req: Request,
       file: MulterFile,
       cb: (error: Error | null, filename: string) => void,
     ) => {
-      const rawExt = extname(file.originalname).toLowerCase();
-      const ext = ALLOWED_EXTENSIONS.has(rawExt)
-        ? rawExt === '.jpeg'
-          ? '.jpg'
-          : rawExt
-        : '.jpg';
-      cb(null, `${randomUUID()}${ext}`);
+      const kind = parseBlogMediaKind(req.query?.kind);
+      const allowed = kind ? BLOG_IMAGE_EXTENSIONS : LEGACY_IMAGE_EXTENSIONS;
+      cb(null, buildUniqueUploadFilename(file.originalname, allowed, '.jpg'));
     },
   }),
   limits: { fileSize: ARTICLE_IMAGE_MAX_BYTES },
   fileFilter: (
-    _req: Express.Request,
+    req: Request,
     file: MulterFile,
     cb: (error: Error | null, acceptFile: boolean) => void,
   ) => {
-    if (!ARTICLE_IMAGE_MIME_TYPES.has(file.mimetype)) {
+    const kind = parseBlogMediaKind(req.query?.kind);
+    const allowed = kind ? ARTICLE_IMAGE_MIME_TYPES : LEGACY_IMAGE_MIME;
+    if (!allowed.has(file.mimetype)) {
       cb(
-        new BadRequestException('Only JPEG, PNG, WebP, and GIF images are allowed.'),
+        new BadRequestException(
+          kind
+            ? 'Only JPEG, PNG, and WebP images are allowed.'
+            : 'Only JPEG, PNG, WebP, and GIF images are allowed.',
+        ),
         false,
       );
       return;

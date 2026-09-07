@@ -25,6 +25,7 @@ import { ArticleViewAnalyticsService } from './article-view-analytics.service';
 import { ArticleMediaService } from './article-media.service';
 import { ARTICLE_IMAGE_MULTER_OPTIONS } from './article-image-upload.options';
 import { ARTICLE_VIDEO_MULTER_OPTIONS } from './article-video-upload.options';
+import { parseBlogMediaKind } from './article-upload.paths';
 import {
   ArticleResponseDto,
   PaginatedArticlesDto,
@@ -49,23 +50,33 @@ export class ArticlesController {
   @Post('media/upload')
   @UseInterceptors(FileInterceptor('file', ARTICLE_IMAGE_MULTER_OPTIONS))
   uploadFeaturedImage(
+    @Query('kind') kindRaw: string | undefined,
     @UploadedFile() file: MulterFile | undefined,
   ): ArticleImageUploadResponseDto {
     if (!file) {
       throw new BadRequestException('Image file is required.');
     }
-    return { path: this.articleMedia.buildPublicPath(file.filename) };
+    const kind = parseBlogMediaKind(kindRaw);
+    const path = kind
+      ? this.articleMedia.buildBlogPublicPath(kind, file.filename)
+      : this.articleMedia.buildPublicPath(file.filename);
+    return { path, url: path };
   }
 
   @Post('media/upload-video')
   @UseInterceptors(FileInterceptor('file', ARTICLE_VIDEO_MULTER_OPTIONS))
   uploadArticleVideo(
+    @Query('kind') kindRaw: string | undefined,
     @UploadedFile() file: MulterFile | undefined,
   ): ArticleImageUploadResponseDto {
     if (!file) {
       throw new BadRequestException('Video file is required.');
     }
-    return { path: this.articleMedia.buildVideoPublicPath(file.filename) };
+    const blogKind = parseBlogMediaKind(kindRaw);
+    const path = blogKind
+      ? this.articleMedia.buildBlogPublicPath(blogKind, file.filename)
+      : this.articleMedia.buildVideoPublicPath(file.filename);
+    return { path, url: path };
   }
 
   @Post()

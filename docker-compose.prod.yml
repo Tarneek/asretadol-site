@@ -42,12 +42,18 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME:-news_platform}
       API_PORT: 3020
-      ARTICLE_UPLOAD_DIR: /app/uploads/news
-      ARTICLE_VIDEO_UPLOAD_DIR: /app/uploads/videos
+      # Container paths must match the bind mount below. Host path is UPLOAD_HOST_DIR.
+      UPLOAD_ROOT: /srv/uploads
+      UPLOAD_DIR: /srv/uploads/blog
+      ARTICLE_UPLOAD_DIR: /srv/uploads/news
+      ARTICLE_VIDEO_UPLOAD_DIR: /srv/uploads/videos
+      UPLOAD_UID: ${UPLOAD_UID:-1000}
+      UPLOAD_GID: ${UPLOAD_GID:-1000}
       TRUST_PROXY: 'true'
       SEED_ADMIN_ENABLED: 'false'
     volumes:
-      - uploads_data:/app/uploads
+      # Host /srv/... → container /srv/uploads (do not use a named volume in production).
+      - ${UPLOAD_HOST_DIR:-/srv/niranews/uploads}:/srv/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,7 +86,7 @@ services:
       # Server-side Nest reachability (avoids looping public /api/auth/* through nginx)
       API_INTERNAL_URL: ${API_INTERNAL_URL:-http://api:3020/api}
     volumes:
-      - uploads_data:/app/apps/web/public/uploads
+      - ${UPLOAD_HOST_DIR:-/srv/niranews/uploads}:/app/apps/web/public/uploads:ro
     depends_on:
       api:
         condition: service_healthy
@@ -98,7 +104,7 @@ services:
       - '80:80'
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
-      - uploads_data:/var/www/uploads:ro
+      - ${UPLOAD_HOST_DIR:-/srv/niranews/uploads}:/var/www/uploads:ro
     environment:
       VIRTUAL_HOST: niranews.com,www.niranews.com
       VIRTUAL_PORT: '80'
@@ -113,7 +119,6 @@ services:
 
 volumes:
   postgres_data:
-  uploads_data:
 
 networks:
   internal:

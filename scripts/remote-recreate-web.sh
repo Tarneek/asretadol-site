@@ -14,7 +14,7 @@ docker run -d \
   -e PORT=3010 \
   -e HOSTNAME=0.0.0.0 \
   -e API_INTERNAL_URL=http://api:3020/api \
-  -v asretadol-site_uploads_data:/app/apps/web/public/uploads \
+  -v "${UPLOAD_HOST_DIR:-/srv/niranews/uploads}:/app/apps/web/public/uploads:ro" \
   asretadol-site-web:latest \
   node apps/web/server.js
 

@@ -28,8 +28,9 @@ export function middleware(request: NextRequest) {
     if (!hasAccessToken) {
       // Never redirect Server Action POSTs: the login page does not register CMS
       // actions, so a redirect causes "Server Action was not found on the server".
+      // An empty 401 also breaks the flight protocol ("unexpected response").
       if (isServerAction) {
-        return new NextResponse(null, { status: 401 });
+        return NextResponse.next();
       }
 
       const loginUrl = new URL(ADMIN_LOGIN, request.url);

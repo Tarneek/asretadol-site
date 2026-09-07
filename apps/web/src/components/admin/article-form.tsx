@@ -1,4 +1,5 @@
 import type { AdminArticle, AdminCategory, AdminTag } from '@/lib/types/admin-api';
+import { ArticleTitleSlugFields } from './article-title-slug-fields';
 import { ArticleFeaturedImageField } from './article-featured-image-field';
 import { ArticleRichTextEditor } from './article-rich-text-editor';
 import { ArticleVideoFields } from './article-video-fields';
@@ -33,35 +34,10 @@ export function ArticleForm({
             </p>
           </header>
           <div className="form-grid">
-            <div className="form-field">
-              <label className="form-field__label" htmlFor="article-title">
-                عنوان مطلب
-              </label>
-              <input
-                id="article-title"
-                name="title"
-                required
-                dir="rtl"
-                defaultValue={article?.title ?? ''}
-                placeholder="عنوان خبر را وارد کنید"
-              />
-            </div>
-            <div className="form-field">
-              <label className="form-field__label" htmlFor="article-slug">
-                شناسه URL (Slug)
-              </label>
-              <p className="form-field__hint">
-                اختیاری — در صورت خالی بودن از روی عنوان ساخته می‌شود. فقط حروف لاتین، عدد و خط تیره.
-              </p>
-              <input
-                id="article-slug"
-                name="slug"
-                dir="ltr"
-                defaultValue={article?.slug ?? ''}
-                placeholder="example-news-slug"
-                autoComplete="off"
-              />
-            </div>
+            <ArticleTitleSlugFields
+              initialTitle={article?.title ?? ''}
+              initialSlug={article?.slug ?? ''}
+            />
             <div className="form-field">
               <label className="form-field__label" htmlFor="article-excerpt">
                 خلاصه خبر
@@ -100,7 +76,10 @@ export function ArticleForm({
             <p className="article-editor__card-desc">تصویر شاخص و ویدیوی اختیاری مطلب.</p>
           </header>
           <div className="form-grid form-grid--2">
-            <ArticleFeaturedImageField initialPath={article?.featuredImage} />
+            <ArticleFeaturedImageField
+              initialPath={article?.featuredImage}
+              slot="main"
+            />
             <ArticleVideoFields
               initialHasVideo={article?.hasVideo ?? false}
               initialVideoUrl={article?.videoUrl}
@@ -116,50 +95,54 @@ export function ArticleForm({
             <p className="article-editor__card-desc">دسته‌بندی‌ها و برچسب‌های مرتبط با مطلب.</p>
           </header>
           <div className="form-grid">
-            <fieldset>
+            <fieldset className="taxonomy-fieldset">
               <legend>دسته‌بندی‌ها</legend>
-              {categories.length === 0 ? (
-                <p className="muted" style={{ margin: 0 }}>
-                  هنوز دسته‌ای تعریف نشده. از بخش دسته‌بندی‌ها اضافه کنید.
-                </p>
-              ) : (
-                <div className="checkbox-grid">
-                  {categories.map((category) => (
-                    <label key={category.id}>
-                      <input
-                        type="checkbox"
-                        name="categoryIds"
-                        value={category.id}
-                        defaultChecked={selectedCategoryIds.has(category.id)}
-                      />
-                      {category.name}
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div className="taxonomy-fieldset__body">
+                {categories.length === 0 ? (
+                  <p className="muted" style={{ margin: 0 }}>
+                    هنوز دسته‌ای تعریف نشده. از بخش دسته‌بندی‌ها اضافه کنید.
+                  </p>
+                ) : (
+                  <div className="checkbox-grid">
+                    {categories.map((category) => (
+                      <label key={category.id}>
+                        <input
+                          type="checkbox"
+                          name="categoryIds"
+                          value={category.id}
+                          defaultChecked={selectedCategoryIds.has(category.id)}
+                        />
+                        {category.name}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </fieldset>
 
-            <fieldset>
+            <fieldset className="taxonomy-fieldset">
               <legend>برچسب‌ها</legend>
-              {tags.length === 0 ? (
-                <p className="muted" style={{ margin: 0 }}>
-                  هنوز برچسبی تعریف نشده. از بخش برچسب‌ها اضافه کنید.
-                </p>
-              ) : (
-                <div className="checkbox-grid">
-                  {tags.map((tag) => (
-                    <label key={tag.id}>
-                      <input
-                        type="checkbox"
-                        name="tagIds"
-                        value={tag.id}
-                        defaultChecked={selectedTagIds.has(tag.id)}
-                      />
-                      {tag.name}
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div className="taxonomy-fieldset__body">
+                {tags.length === 0 ? (
+                  <p className="muted" style={{ margin: 0 }}>
+                    هنوز برچسبی تعریف نشده. از بخش برچسب‌ها اضافه کنید.
+                  </p>
+                ) : (
+                  <div className="checkbox-grid">
+                    {tags.map((tag) => (
+                      <label key={tag.id}>
+                        <input
+                          type="checkbox"
+                          name="tagIds"
+                          value={tag.id}
+                          defaultChecked={selectedTagIds.has(tag.id)}
+                        />
+                        {tag.name}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </fieldset>
           </div>
         </section>
