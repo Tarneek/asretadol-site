@@ -55,12 +55,9 @@ docker run -d \
   asretadol-site-web:latest \
   node apps/web/server.js
 
-echo "=== 5) Restart api + nginx ==="
+echo "=== 5) Restart api (host Nginx proxies 127.0.0.1:3010/3020) ==="
 docker restart news-platform-api
 sleep 8
-docker start news-platform-nginx 2>/dev/null || true
-docker restart news-platform-nginx
-sleep 3
 
 echo "=== 6) Status ==="
 docker ps --filter name=news-platform --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'

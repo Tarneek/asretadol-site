@@ -20,8 +20,6 @@ docker run -d \
 
 sleep 4
 echo "PORT=$(docker exec news-platform-web printenv PORT)"
-docker restart news-platform-nginx
-sleep 2
 
 echo "=== HEADERS ==="
 curl -sI -H 'Host: niranews.com' --max-time 15 http://127.0.0.1/ | head -10
