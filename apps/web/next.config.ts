@@ -15,8 +15,8 @@ const nextConfig: NextConfig = {
   output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
   experimental: {
     serverActions: {
-      // Featured images up to 5MB; keep headroom for form fields.
-      bodySizeLimit: '8mb',
+      // Featured images up to 5MB; videos via BFF up to 100MB — keep headroom.
+      bodySizeLimit: '110mb',
     },
   },
   images: {
