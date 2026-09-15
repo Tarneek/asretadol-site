@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-news_secret}
       POSTGRES_DB: ${POSTGRES_DB:-news_platform}
     volumes:
-      - ${POSTGRES_DATA_HOST_PATH:-postgres_data}:/var/lib/postgresql/data
+       - ${POSTGRES_DATA_PATH:-postgres_data}:/var/lib/postgresql/data
     networks:
       - internal
     healthcheck:
