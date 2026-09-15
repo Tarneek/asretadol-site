@@ -93,7 +93,7 @@ export class ArticlesService {
       title: dto.title.trim(),
       slug,
       excerpt: dto.excerpt?.trim() || null,
-      content: dto.content,
+      content: dto.content ?? '',
       status: ArticleStatus.Draft,
       featured: flags.featured,
       breaking: flags.breaking,
@@ -222,7 +222,7 @@ export class ArticlesService {
 
     if (dto.slug !== undefined) {
       article.slug = await this.resolveUniqueSlug(dto.slug, article.id);
-    } else if (dto.title !== undefined && article.status === ArticleStatus.Draft) {
+    } else if (dto.title !== undefined) {
       article.slug = await this.resolveUniqueSlug(dto.title, article.id);
     }
 
@@ -404,7 +404,7 @@ export class ArticlesService {
     const base = slugify(raw) || `article-${randomUUID().slice(0, 8)}`;
 
     let candidate = base;
-    let suffix = 2;
+    let suffix = 1;
 
     while (await this.slugExists(candidate, excludeId)) {
       candidate = `${base}-${suffix}`;

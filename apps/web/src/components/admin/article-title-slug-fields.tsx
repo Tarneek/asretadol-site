@@ -11,7 +11,7 @@ type Props = {
 export function ArticleTitleSlugFields({ initialTitle = '', initialSlug = '' }: Props) {
   const [title, setTitle] = useState(initialTitle);
   const [slug, setSlug] = useState(initialSlug);
-  const [slugEdited, setSlugEdited] = useState(Boolean(initialSlug));
+  const [slugEdited, setSlugEdited] = useState(false);
 
   return (
     <>
@@ -48,8 +48,15 @@ export function ArticleTitleSlugFields({ initialTitle = '', initialSlug = '' }: 
           dir="rtl"
           value={slug}
           onChange={(event) => {
+            const nextSlug = event.target.value;
+            const generated = generateArticleSlug(title);
+            if (nextSlug === '' || nextSlug === generated) {
+              setSlugEdited(false);
+              setSlug(nextSlug === '' ? generated : nextSlug);
+              return;
+            }
             setSlugEdited(true);
-            setSlug(event.target.value);
+            setSlug(nextSlug);
           }}
           placeholder="example-news-slug"
           autoComplete="off"

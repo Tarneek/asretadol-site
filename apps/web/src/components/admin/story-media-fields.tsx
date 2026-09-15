@@ -1,14 +1,26 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import Image from 'next/image';
-import { imageOrPlaceholder, isUploadedMediaPath } from '@/lib/format';
+import {
+  NEWS_PLACEHOLDER_IMAGE_PATH,
+  isUploadedMediaPath,
+} from '@/lib/format';
+import { toPublicUploadUrl } from '@/lib/article-editor-media';
 
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 const VIDEO_MAX_BYTES = 100 * 1024 * 1024;
 
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
 const VIDEO_ACCEPT = 'video/mp4,video/webm,video/quicktime,video/x-msvideo';
+
+const IMAGE_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const VIDEO_MIME = new Set([
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+  'video/x-msvideo',
+]);
 
 type MediaType = 'image' | 'video';
 
@@ -22,8 +34,59 @@ function isDirectVideoPreview(url: string): boolean {
   return (
     url.startsWith('blob:') ||
     url.startsWith('/uploads/videos/') ||
+    url.startsWith('/uploads/blog/') ||
     /\.(mp4|webm|mov)(\?|$)/i.test(url)
   );
+}
+
+function revokeIfBlob(url: string) {
+  if (url.startsWith('blob:')) {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function storyImageSrc(url: string): string {
+  const value = url.trim();
+  if (
+    value.startsWith('/') ||
+    value.startsWith('blob:') ||
+    value.startsWith('http://') ||
+    value.startsWith('https://')
+  ) {
+    return value;
+  }
+  return NEWS_PLACEHOLDER_IMAGE_PATH;
+}
+
+async function uploadStoryMediaFile(file: File, mediaType: MediaType): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const endpoint =
+    mediaType === 'video'
+      ? '/api/admin/articles/media/upload-video'
+      : '/api/admin/articles/media/upload';
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const payload = (await response.json().catch(() => null)) as {
+    message?: string;
+    path?: string;
+    url?: string;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(payload?.message ?? 'بارگذاری فایل ممکن نشد.');
+  }
+
+  const publicUrl = toPublicUploadUrl(payload?.url ?? payload?.path);
+  if (!publicUrl) {
+    throw new Error('پاسخ سرور نامعتبر بود.');
+  }
+
+  return publicUrl;
 }
 
 export function StoryMediaFields({
@@ -34,8 +97,9 @@ export function StoryMediaFields({
   const [mediaType, setMediaType] = useState<MediaType>(initialMediaType);
   const [mediaUrl, setMediaUrl] = useState(initialMediaUrl.trim());
   const [previewUrl, setPreviewUrl] = useState(initialMediaUrl.trim());
-  const [pendingFile, setPendingFile] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const mediaTypeId = useId();
   const urlId = useId();
@@ -43,6 +107,7 @@ export function StoryMediaFields({
 
   const accept = mediaType === 'video' ? VIDEO_ACCEPT : IMAGE_ACCEPT;
   const maxBytes = mediaType === 'video' ? VIDEO_MAX_BYTES : IMAGE_MAX_BYTES;
+  const allowedMime = mediaType === 'video' ? VIDEO_MIME : IMAGE_MIME;
 
   const urlPlaceholder =
     mediaType === 'video'
@@ -55,33 +120,51 @@ export function StoryMediaFields({
       : 'لینک تصویر (https) یا بارگذاری فایل — JPEG، PNG، WebP یا GIF، حداکثر ۵ مگابایت.';
 
   const showVideoPreview = mediaType === 'video' && previewUrl && isDirectVideoPreview(previewUrl);
-  const showImagePreview = mediaType === 'image' && previewUrl;
-  const unoptimized =
-    previewUrl.startsWith('blob:') || isUploadedMediaPath(previewUrl) || previewUrl.startsWith('http');
-
-  const fileInputKey = useMemo(
-    () => `${idPrefix}-${mediaType}-${pendingFile ? 'file' : 'empty'}`,
-    [idPrefix, mediaType, pendingFile],
-  );
+  const imageSrc = storyImageSrc(previewUrl);
+  const imageUnoptimized =
+    imageSrc.startsWith('blob:') ||
+    isUploadedMediaPath(imageSrc) ||
+    imageSrc.startsWith('http');
 
   function handleMediaTypeChange(nextType: MediaType) {
     setMediaType(nextType);
-    setPendingFile(false);
+    setUploading(false);
     setFileError(null);
+    setPreviewUrl((current) => {
+      revokeIfBlob(current);
+      return initialMediaUrl.trim();
+    });
     setMediaUrl(initialMediaUrl.trim());
-    setPreviewUrl(initialMediaUrl.trim());
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }
 
   function handleUrlChange(value: string) {
-    setPendingFile(false);
     setFileError(null);
     setMediaUrl(value);
-    setPreviewUrl(value);
+    setPreviewUrl((current) => {
+      revokeIfBlob(current);
+      return value;
+    });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) {
+      return;
+    }
+
+    if (!allowedMime.has(file.type)) {
+      setFileError(
+        mediaType === 'video'
+          ? 'فرمت ویدیو مجاز نیست. از MP4، WebM یا MOV استفاده کنید.'
+          : 'فرمت تصویر مجاز نیست. از JPEG، PNG، WebP یا GIF استفاده کنید.',
+      );
+      event.target.value = '';
       return;
     }
 
@@ -95,10 +178,31 @@ export function StoryMediaFields({
       return;
     }
 
+    const objectUrl = URL.createObjectURL(file);
     setFileError(null);
-    setPendingFile(true);
-    setMediaUrl('');
-    setPreviewUrl(URL.createObjectURL(file));
+    setPreviewUrl((current) => {
+      revokeIfBlob(current);
+      return objectUrl;
+    });
+    setUploading(true);
+
+    try {
+      const path = await uploadStoryMediaFile(file, mediaType);
+      setMediaUrl(path);
+      setPreviewUrl((current) => {
+        revokeIfBlob(current);
+        return path;
+      });
+      event.target.value = '';
+    } catch (uploadError) {
+      setFileError(
+        uploadError instanceof Error && uploadError.message.trim()
+          ? uploadError.message
+          : 'بارگذاری فایل ممکن نشد.',
+      );
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -133,10 +237,10 @@ export function StoryMediaFields({
             id={urlId}
             type="text"
             dir="ltr"
-            value={pendingFile ? '' : mediaUrl}
+            value={mediaUrl}
             onChange={(event) => handleUrlChange(event.target.value)}
             placeholder={urlPlaceholder}
-            disabled={pendingFile}
+            disabled={uploading}
           />
         </div>
 
@@ -145,14 +249,20 @@ export function StoryMediaFields({
             {mediaType === 'video' ? 'بارگذاری فایل ویدیو' : 'بارگذاری فایل تصویر'}
           </label>
           <input
-            key={fileInputKey}
+            ref={fileInputRef}
             id={fileId}
-            name="mediaFile"
             type="file"
             accept={accept}
+            disabled={uploading}
             onChange={handleFileChange}
           />
         </div>
+
+        {uploading ? (
+          <p className="form-field__hint" role="status">
+            در حال بارگذاری فایل…
+          </p>
+        ) : null}
 
         {fileError ? (
           <p className="form-field__hint" style={{ color: 'var(--danger)' }} role="alert">
@@ -160,24 +270,32 @@ export function StoryMediaFields({
           </p>
         ) : null}
 
-        {pendingFile ? (
-          <p className="form-field__hint">فایل جدید انتخاب شد — پس از ذخیره، بارگذاری انجام می‌شود.</p>
-        ) : mediaUrl ? (
+        {mediaUrl ? (
           <p className="form-field__hint" dir="ltr">
             مسیر فعلی: {mediaUrl}
           </p>
         ) : null}
 
-        {showImagePreview ? (
+        {mediaType === 'image' ? (
           <div className="article-image-field__preview story-media-field__preview">
-            <Image
-              src={imageOrPlaceholder(previewUrl)}
-              alt="پیش‌نمایش رسانه استوری"
-              width={320}
-              height={200}
-              className="article-image-field__img"
-              unoptimized={unoptimized}
-            />
+            {imageSrc.startsWith('blob:') ? (
+              // Blob previews are local object URLs; next/image cannot optimize them.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageSrc}
+                alt="پیش‌نمایش رسانه استوری"
+                className="article-image-field__img"
+              />
+            ) : (
+              <Image
+                src={imageSrc}
+                alt="پیش‌نمایش رسانه استوری"
+                width={320}
+                height={200}
+                className="article-image-field__img"
+                unoptimized={imageUnoptimized}
+              />
+            )}
           </div>
         ) : null}
 

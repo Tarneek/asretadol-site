@@ -170,8 +170,39 @@ export class EnvironmentVariables {
   ARTICLE_VIDEO_UPLOAD_DIR?: string;
 }
 
+function readEnvString(config: Record<string, unknown>, key: string): string | undefined {
+  const value = config[key];
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+/** Accept dentistry-era JWT_SECRET / JWT_EXPIRES_IN when Nest keys are absent. */
+function applyJwtAliases(config: Record<string, unknown>): Record<string, unknown> {
+  const accessSecret =
+    readEnvString(config, 'JWT_ACCESS_SECRET') ?? readEnvString(config, 'JWT_SECRET');
+  const refreshSecret =
+    readEnvString(config, 'JWT_REFRESH_SECRET') ?? readEnvString(config, 'JWT_SECRET');
+  const accessExpires =
+    readEnvString(config, 'JWT_ACCESS_EXPIRES_IN') ??
+    readEnvString(config, 'JWT_EXPIRES_IN') ??
+    '15m';
+  const refreshExpires = readEnvString(config, 'JWT_REFRESH_EXPIRES_IN') ?? '7d';
+
+  return {
+    ...config,
+    ...(accessSecret ? { JWT_ACCESS_SECRET: accessSecret } : {}),
+    ...(refreshSecret ? { JWT_REFRESH_SECRET: refreshSecret } : {}),
+    JWT_ACCESS_EXPIRES_IN: accessExpires,
+    JWT_REFRESH_EXPIRES_IN: refreshExpires,
+  };
+}
+
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {
-  const validated = plainToInstance(EnvironmentVariables, config, {
+  const normalized = applyJwtAliases(config);
+  const validated = plainToInstance(EnvironmentVariables, normalized, {
     enableImplicitConversion: true,
   });
 

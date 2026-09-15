@@ -31,20 +31,56 @@ function isNextRedirect(error: unknown): boolean {
   );
 }
 
-async function sanitizeContentOrRedirect(rawContent: string, errorPath: string): Promise<string> {
-  try {
-    const content = await sanitizeArticleHtmlForStorage(rawContent);
-    const text = content.replace(/<[^>]+>/g, '').replace(/&nbsp;/gi, ' ').trim();
-    if (!text) {
-      actionErrorRedirect(errorPath, 'متن مطلب را وارد کنید.');
-    }
-    return content;
-  } catch (error) {
-    if (isNextRedirect(error)) {
-      throw error;
-    }
-    actionErrorRedirect(errorPath, 'پردازش متن مطلب ممکن نشد. دوباره تلاش کنید.');
-  }
+export type ArticleFormDraft = {
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  seoTitle: string;
+  seoDescription: string;
+  categoryIds: string[];
+  tagIds: string[];
+  isHero: boolean;
+  isFeatured: boolean;
+  isBreaking: boolean;
+  hasVideo: boolean;
+  featuredImage: string;
+  videoUrl: string;
+};
+
+export type ArticleFormState = {
+  error?: string;
+  values?: ArticleFormDraft;
+  stamp?: number;
+};
+
+function readArticleFormDraft(formData: FormData): ArticleFormDraft {
+  return {
+    title: String(formData.get('title') ?? ''),
+    slug: String(formData.get('slug') ?? ''),
+    excerpt: String(formData.get('excerpt') ?? ''),
+    content: String(formData.get('content') ?? ''),
+    seoTitle: String(formData.get('seoTitle') ?? ''),
+    seoDescription: String(formData.get('seoDescription') ?? ''),
+    categoryIds: formData.getAll('categoryIds').map(String).filter(Boolean),
+    tagIds: formData.getAll('tagIds').map(String).filter(Boolean),
+    isHero: formData.get('isHero') === '1',
+    isFeatured: formData.get('isFeatured') === '1',
+    isBreaking: formData.get('isBreaking') === '1',
+    hasVideo: formData.get('hasVideo') === '1',
+    featuredImage: String(formData.get('featuredImage') ?? ''),
+    videoUrl: String(formData.get('videoUrl') ?? ''),
+  };
+}
+
+function formError(formData: FormData, error: string): ArticleFormState {
+  return { error, values: readArticleFormDraft(formData), stamp: Date.now() };
+}
+
+async function sanitizeOptionalContent(rawContent: string): Promise<string> {
+  const content = await sanitizeArticleHtmlForStorage(rawContent);
+  const text = content.replace(/<[^>]+>/g, '').replace(/&nbsp;/gi, ' ').trim();
+  return text ? content : '';
 }
 
 async function resolveFeaturedImageFromForm(
@@ -91,15 +127,26 @@ async function resolveArticleVideoFromForm(
   return { hasVideo: true, videoUrl: null };
 }
 
-export async function createArticleAction(formData: FormData) {
+export async function createArticleAction(
+  _prev: ArticleFormState,
+  formData: FormData,
+): Promise<ArticleFormState> {
   const title = String(formData.get('title') ?? '').trim();
   if (!title) {
-    actionErrorRedirect('/admin/articles/new', 'عنوان مطلب الزامی است.');
+    return formError(formData, 'عنوان مطلب الزامی است.');
   }
   const slug =
     String(formData.get('slug') ?? '').trim() || generateArticleSlug(title);
   const rawContent = String(formData.get('content') ?? '').trim();
-  const content = await sanitizeContentOrRedirect(rawContent, '/admin/articles/new');
+  let content: string;
+  try {
+    content = await sanitizeOptionalContent(rawContent);
+  } catch (error) {
+    if (isNextRedirect(error)) {
+      throw error;
+    }
+    return formError(formData, 'پردازش متن مطلب ممکن نشد. دوباره تلاش کنید.');
+  }
   const excerpt = String(formData.get('excerpt') ?? '').trim();
   const seoTitle = String(formData.get('seoTitle') ?? '').trim();
   const seoDescription = String(formData.get('seoDescription') ?? '').trim();
@@ -116,8 +163,8 @@ export async function createArticleAction(formData: FormData) {
     if (isNextRedirect(error)) {
       throw error;
     }
-    actionErrorRedirect(
-      '/admin/articles/new',
+    return formError(
+      formData,
       userFacingApiError(error, 'بارگذاری ویدیو ممکن نشد. اندازه و نوع فایل را بررسی کنید.'),
     );
   }
@@ -129,8 +176,8 @@ export async function createArticleAction(formData: FormData) {
     if (isNextRedirect(error)) {
       throw error;
     }
-    actionErrorRedirect(
-      '/admin/articles/new',
+    return formError(
+      formData,
       userFacingApiError(error, 'بارگذاری تصویر ممکن نشد. اندازه و نوع فایل را بررسی کنید.'),
     );
   }
@@ -168,8 +215,8 @@ export async function createArticleAction(formData: FormData) {
     if (process.env.NODE_ENV !== 'production') {
       console.error('[createArticle]', error);
     }
-    actionErrorRedirect(
-      '/admin/articles/new',
+    return formError(
+      formData,
       userFacingApiError(
         error,
         'ثبت مطلب ممکن نشد. ورودی‌ها را بررسی کنید و دوباره تلاش کنید.',
@@ -181,11 +228,27 @@ export async function createArticleAction(formData: FormData) {
   redirect(`/admin/articles/${article.id}?created=1`);
 }
 
-export async function updateArticleAction(id: number, formData: FormData) {
+export async function updateArticleAction(
+  id: number,
+  _prev: ArticleFormState,
+  formData: FormData,
+): Promise<ArticleFormState> {
   const title = String(formData.get('title') ?? '').trim();
-  const slug = String(formData.get('slug') ?? '').trim();
+  if (!title) {
+    return formError(formData, 'عنوان مطلب الزامی است.');
+  }
+  const slug =
+    String(formData.get('slug') ?? '').trim() || generateArticleSlug(title);
   const rawContent = String(formData.get('content') ?? '').trim();
-  const content = await sanitizeContentOrRedirect(rawContent, `/admin/articles/${id}`);
+  let content: string;
+  try {
+    content = await sanitizeOptionalContent(rawContent);
+  } catch (error) {
+    if (isNextRedirect(error)) {
+      throw error;
+    }
+    return formError(formData, 'پردازش متن مطلب ممکن نشد. دوباره تلاش کنید.');
+  }
   const excerpt = String(formData.get('excerpt') ?? '').trim();
   const seoTitle = String(formData.get('seoTitle') ?? '').trim();
   const seoDescription = String(formData.get('seoDescription') ?? '').trim();
@@ -203,10 +266,7 @@ export async function updateArticleAction(id: number, formData: FormData) {
       existingVideo || undefined,
     ));
   } catch {
-    actionErrorRedirect(
-      `/admin/articles/${id}`,
-      'بارگذاری ویدیو ممکن نشد. اندازه و نوع فایل را بررسی کنید.',
-    );
+    return formError(formData, 'بارگذاری ویدیو ممکن نشد. اندازه و نوع فایل را بررسی کنید.');
   }
   const existingPath = String(formData.get('featuredImage') ?? '').trim();
 
@@ -214,16 +274,13 @@ export async function updateArticleAction(id: number, formData: FormData) {
   try {
     featuredImage = await resolveFeaturedImageFromForm(formData, existingPath);
   } catch {
-    actionErrorRedirect(
-      `/admin/articles/${id}`,
-      'بارگذاری تصویر ممکن نشد. اندازه و نوع فایل را بررسی کنید.',
-    );
+    return formError(formData, 'بارگذاری تصویر ممکن نشد. اندازه و نوع فایل را بررسی کنید.');
   }
 
   try {
     await updateAdminArticle(id, {
       title,
-      ...(slug ? { slug } : {}),
+      slug,
       content,
       excerpt: excerpt || null,
       seoTitle: seoTitle || null,
@@ -241,8 +298,8 @@ export async function updateArticleAction(id: number, formData: FormData) {
     if (isNextRedirect(error)) {
       throw error;
     }
-    actionErrorRedirect(
-      `/admin/articles/${id}`,
+    return formError(
+      formData,
       userFacingApiError(
         error,
         'ذخیره مطلب ممکن نشد. ورودی‌ها را بررسی کنید و دوباره تلاش کنید.',

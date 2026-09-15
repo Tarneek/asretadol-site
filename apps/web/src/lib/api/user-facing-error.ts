@@ -1,6 +1,13 @@
 import { ApiError, isApiNetworkError } from '@/lib/api/client';
 
 const MESSAGE_FA: Record<string, string> = {
+  'seoTitle must be shorter than or equal to 255 characters':
+    'عنوان سئو حداکثر ۲۵۵ کاراکتر است.',
+  'seoDescription must be shorter than or equal to 500 characters':
+    'توضیح سئو حداکثر ۵۰۰ کاراکتر است.',
+  'title must be longer than or equal to 1 characters': 'عنوان مطلب الزامی است.',
+  'title must be shorter than or equal to 500 characters':
+    'عنوان مطلب حداکثر ۵۰۰ کاراکتر است.',
   'Unable to generate a valid slug':
     'ساخت شناسه URL از عنوان ممکن نشد. اسلاگ را به‌صورت دستی وارد کنید.',
   'One or more categoryIds are invalid': 'یک یا چند دسته‌بندی نامعتبر است.',

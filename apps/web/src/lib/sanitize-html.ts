@@ -69,6 +69,24 @@ async function loadDomPurify(): Promise<DomPurifyLike> {
   if (browserDomPurify) return browserDomPurify;
   const mod = await import('isomorphic-dompurify');
   browserDomPurify = (('default' in mod && mod.default) ? mod.default : mod) as DomPurifyLike;
+  const purify = browserDomPurify as DomPurifyLike & {
+    addHook?: (name: string, hook: (node: Element, data: { attrName: string; attrValue: string; keepAttr: boolean }) => void) => void;
+  };
+  purify.addHook?.('uponSanitizeAttribute', (node, data) => {
+    const tag = node.nodeName.toLowerCase();
+    if (data.attrName === 'style') {
+      data.attrValue = sanitizeStyle(data.attrValue);
+      if (!data.attrValue) {
+        data.keepAttr = false;
+      }
+    }
+    if (
+      (tag === 'img' || tag === 'video' || tag === 'iframe') &&
+      (data.attrName === 'width' || data.attrName === 'height')
+    ) {
+      data.keepAttr = false;
+    }
+  });
   return browserDomPurify;
 }
 
@@ -123,9 +141,6 @@ function sanitizeStyle(value: string): string {
         property === 'text-align' ||
         property === 'color' ||
         property === 'background-color' ||
-        property === 'max-width' ||
-        property === 'width' ||
-        property === 'height' ||
         property === 'direction'
       );
     })
@@ -144,6 +159,12 @@ function filterAttributes(rawAttrs: string, tag: string): string {
       continue;
     }
     if ((name === 'href' || name === 'src') && isDangerousUrl(value)) {
+      continue;
+    }
+    if (
+      (tag === 'img' || tag === 'video' || tag === 'iframe') &&
+      (name === 'width' || name === 'height')
+    ) {
       continue;
     }
     const nextValue = name === 'style' ? sanitizeStyle(value) : value;

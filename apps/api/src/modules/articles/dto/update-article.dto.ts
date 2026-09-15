@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
@@ -10,6 +11,14 @@ import {
   ValidateIf,
 } from 'class-validator';
 
+function emptyToUndefined(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 export class UpdateArticleDto {
   @IsOptional()
   @IsString()
@@ -18,6 +27,7 @@ export class UpdateArticleDto {
   title?: string;
 
   @IsOptional()
+  @Transform(({ value }) => emptyToUndefined(value))
   @IsString()
   @MaxLength(255)
   slug?: string;
@@ -29,7 +39,6 @@ export class UpdateArticleDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(1)
   content?: string;
 
   @IsOptional()

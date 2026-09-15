@@ -25,9 +25,9 @@ export class CreateArticleDto {
   @IsString()
   excerpt?: string | null;
 
+  @IsOptional()
   @IsString()
-  @MinLength(1)
-  content!: string;
+  content?: string;
 
   @IsOptional()
   @IsString()

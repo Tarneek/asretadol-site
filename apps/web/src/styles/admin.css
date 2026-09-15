@@ -1538,9 +1538,10 @@
 
 .article-rich-editor .ql-editor img,
 .article-rich-editor .ql-editor video {
-  max-width: 100%;
-  height: auto;
+  max-width: 100% !important;
+  height: auto !important;
   display: block;
+  object-fit: contain;
   margin: 0.5rem auto;
 }
 

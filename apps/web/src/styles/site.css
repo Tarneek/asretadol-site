@@ -1542,9 +1542,10 @@
 }
 
 .blog-pic__image {
-  width: 100%;
-  height: auto;
   display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
 }
 
 .shortNews h3 {
@@ -1982,12 +1983,14 @@
 
 .blog-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
   gap: 1.5rem;
   align-items: start;
 }
 
 .blog-detail-inner {
+  min-width: 0;
+  max-width: 100%;
   padding: 20px;
   margin-bottom: 20px;
   border-radius: 20px;
@@ -2007,13 +2010,19 @@
 
 .blog-detail-inner .blog-pic {
   display: block;
+  width: 100%;
+  max-width: 100%;
   margin-bottom: 20px;
   border-radius: 20px;
   overflow: hidden;
 }
 
-.blog-detail-inner .blog-pic img {
+.blog-detail-inner .blog-pic img,
+.blog-detail-inner .blog-pic .blog-pic__image {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  height: auto;
   max-height: 420px;
   object-fit: cover;
   border-radius: 20px;
@@ -2029,9 +2038,12 @@
 }
 
 .blog-detail-inner .description {
+  min-width: 0;
+  max-width: 100%;
   color: var(--text);
   font-size: 15px;
   line-height: 1.9;
+  overflow-wrap: anywhere;
 }
 
 .article-video-player {
@@ -2049,9 +2061,13 @@
   inset: 0;
 }
 
-.article-body {
+.article-body,
+.article-body.prose-rtl {
+  min-width: 0;
+  max-width: 100%;
   color: var(--text);
   line-height: 1.9;
+  overflow-x: auto;
 }
 
 .article-body p {
@@ -2069,10 +2085,39 @@
   text-decoration: underline;
 }
 
-.article-body img {
-  max-width: 100%;
-  height: auto;
+.article-body img,
+.article-body video,
+.article-body iframe,
+.article-body figure,
+.article-body svg {
+  display: block;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.article-body img,
+.article-body video {
+  object-fit: contain;
+  margin-inline: auto;
   border-radius: 12px;
+}
+
+.article-body figure {
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+.article-body iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+}
+
+.article-body table,
+.article-body pre {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .article-body blockquote {
@@ -2241,7 +2286,7 @@
 
 @media (max-width: 991px) {
   .blog-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .listing-grid {

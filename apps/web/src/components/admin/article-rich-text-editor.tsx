@@ -131,8 +131,6 @@ export function ArticleRichTextEditor({ initialHtml = '', name = 'content' }: Pr
     [handleUploadImage, handleUploadVideo],
   );
 
-  const plainText = value.replace(/<[^>]+>/g, '').trim();
-
   return (
     <div className="article-rich-editor" dir="rtl">
       <input
@@ -164,7 +162,7 @@ export function ArticleRichTextEditor({ initialHtml = '', name = 'content' }: Pr
         formats={EDITOR_FORMATS}
         placeholder="متن خبر را بنویسید…"
       />
-      <input type="hidden" name={name} value={value} required={!plainText} />
+      <input type="hidden" name={name} value={value} />
     </div>
   );
 }
