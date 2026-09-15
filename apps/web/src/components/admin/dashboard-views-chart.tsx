@@ -92,15 +92,16 @@ export function DashboardViewsChart({ chart, unavailable = false }: Props) {
           {coords.map((c) => {
             const label = `${formatFaChartDay(c.date)}: ${formatFaNumber(c.views)} بازدید`;
             return (
-              <circle
-                key={c.date}
-                cx={c.x}
-                cy={c.y}
-                r={3.5}
-                className="views-chart__dot"
-                aria-label={label}
-                title={label}
-              />
+              <g key={c.date}>
+                <title>{label}</title>
+                <circle
+                  cx={c.x}
+                  cy={c.y}
+                  r={3.5}
+                  className="views-chart__dot"
+                  aria-label={label}
+                />
+              </g>
             );
           })}
 
