@@ -77,26 +77,32 @@ services:
     networks:
       - internal
 
+  # Edge traffic enters via shared reverse-proxy on network `net` (VIRTUAL_HOST).
+  # Do NOT publish host :80/:443 — that conflicts with reverse-proxy.
   nginx:
     image: nginx:alpine
     container_name: news-platform-nginx
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+    environment:
+      VIRTUAL_HOST: ${VIRTUAL_HOST:-niranews.com,www.niranews.com}
+      VIRTUAL_PORT: '80'
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ${UPLOADS_HOST_PATH:-/srv/niranews/uploads}:/srv/uploads:ro
+      # Must match alias /var/www/uploads/ in docker/nginx.conf
+      - ${UPLOADS_HOST_PATH:-/srv/niranews/uploads}:/var/www/uploads:ro
       - ./docker/nginx-client-max-body-size.conf:/etc/nginx/conf.d/client_max_body_size.conf:ro
     depends_on:
       - web
       - api
     networks:
       - internal
+      - net
 
 networks:
   internal:
     driver: bridge
+  net:
+    external: true
 
 volumes:
   postgres_data:
