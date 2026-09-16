@@ -1,14 +1,27 @@
 'use client';
 
 import { useActionState } from 'react';
+import dynamic from 'next/dynamic';
 import type { AdminArticle, AdminCategory, AdminTag } from '@/lib/types/admin-api';
 import type { ArticleFormState } from '@/app/admin/(cms)/articles/actions';
 import { FlashBanner } from './flash-banner';
 import { ArticleTitleSlugFields } from './article-title-slug-fields';
 import { ArticleFeaturedImageField } from './article-featured-image-field';
-import { ArticleRichTextEditor } from './article-rich-text-editor';
 import { ArticleVideoFields } from './article-video-fields';
 import { SubmitButton } from './submit-button';
+
+const ArticleRichTextEditor = dynamic(
+  () =>
+    import('./article-rich-text-editor').then((mod) => mod.ArticleRichTextEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="article-rich-editor article-rich-editor--loading" aria-busy="true">
+        در حال بارگذاری ویرایشگر…
+      </div>
+    ),
+  },
+);
 
 type ArticleFormAction = (
   prevState: ArticleFormState,

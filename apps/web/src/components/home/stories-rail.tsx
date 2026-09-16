@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { IconChevronLeft, IconChevronRight, IconClose } from '@/components/icons/site-icons';
+import { SiteVideoEmbed } from '@/components/site/site-video-embed';
+import { isDirectVideoFileUrl, resolveVideoPlayback } from '@/lib/video-playback';
 import type { PublicStory } from '@/lib/types/public-api';
 
 type Props = {
@@ -10,22 +12,66 @@ type Props = {
 };
 
 const IMAGE_DURATION_MS = 4500;
+const EMBED_VIDEO_DURATION_MS = 12_000;
+
+function resolveStoryLink(link: string | null | undefined): string | null {
+  const value = link?.trim() ?? '';
+  return value.length > 0 ? value : null;
+}
+
+function useTimedProgress(active: boolean, durationMs: number, onComplete: () => void) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (!active) {
+      return;
+    }
+
+    const startedAt = window.performance.now();
+    let frame = 0;
+
+    const tick = (now: number) => {
+      const nextProgress = Math.min(1, (now - startedAt) / durationMs);
+      setProgress(nextProgress);
+      if (nextProgress >= 1) {
+        onComplete();
+        return;
+      }
+      frame = window.requestAnimationFrame(tick);
+    };
+
+    setProgress(0);
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [active, durationMs, onComplete]);
+
+  return progress;
+}
 
 export function StoriesRail({ stories }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [nativeProgress, setNativeProgress] = useState(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const activeStory = openIndex === null ? null : stories[openIndex] ?? null;
+  const activeStoryLink = resolveStoryLink(activeStory?.link);
+  const activeVideoPlayback =
+    activeStory?.mediaType === 'video'
+      ? resolveVideoPlayback(activeStory.mediaUrl)
+      : null;
+  const isNativeVideo =
+    activeStory?.mediaType === 'video' && activeVideoPlayback?.kind === 'file';
+  const isEmbedVideo =
+    activeStory?.mediaType === 'video' && activeVideoPlayback?.kind === 'iframe';
 
   const openStory = useCallback((index: number) => {
     setOpenIndex(index);
-    setProgress(0);
+    setNativeProgress(0);
   }, []);
 
   const closeStory = useCallback(() => {
     setOpenIndex(null);
-    setProgress(0);
+    setNativeProgress(0);
   }, []);
 
   const goToNext = useCallback(() => {
@@ -36,7 +82,7 @@ export function StoriesRail({ stories }: Props) {
       }
       return current + 1;
     });
-    setProgress(0);
+    setNativeProgress(0);
   }, [stories.length]);
 
   const goToPrev = useCallback(() => {
@@ -44,33 +90,22 @@ export function StoriesRail({ stories }: Props) {
       if (current === null) return current;
       return Math.max(0, current - 1);
     });
-    setProgress(0);
+    setNativeProgress(0);
   }, []);
 
-  useEffect(() => {
-    if (!activeStory || activeStory.mediaType !== 'image') {
-      return;
-    }
-
-    const startedAt = window.performance.now();
-    let frame = 0;
-
-    const tick = (now: number) => {
-      const nextProgress = Math.min(1, (now - startedAt) / IMAGE_DURATION_MS);
-      setProgress(nextProgress);
-      if (nextProgress >= 1) {
-        goToNext();
-        return;
-      }
-      frame = window.requestAnimationFrame(tick);
-    };
-
-    frame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frame);
-  }, [activeStory, goToNext]);
+  const imageProgress = useTimedProgress(
+    Boolean(activeStory && activeStory.mediaType === 'image'),
+    IMAGE_DURATION_MS,
+    goToNext,
+  );
+  const embedProgress = useTimedProgress(
+    Boolean(isEmbedVideo),
+    EMBED_VIDEO_DURATION_MS,
+    goToNext,
+  );
 
   useEffect(() => {
-    if (!activeStory || activeStory.mediaType !== 'video') {
+    if (!isNativeVideo || !activeStory) {
       return;
     }
 
@@ -83,23 +118,19 @@ export function StoriesRail({ stories }: Props) {
       if (!video.duration || Number.isNaN(video.duration)) {
         return;
       }
-      setProgress(video.currentTime / video.duration);
+      setNativeProgress(video.currentTime / video.duration);
     };
 
-    const handleEnded = () => goToNext();
-
     video.currentTime = 0;
-    setProgress(0);
+    setNativeProgress(0);
     video.play().catch(() => undefined);
     video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('ended', handleEnded);
 
     return () => {
       video.pause();
       video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('ended', handleEnded);
     };
-  }, [activeStory, goToNext]);
+  }, [activeStory, isNativeVideo]);
 
   useEffect(() => {
     if (openIndex === null) {
@@ -116,40 +147,77 @@ export function StoriesRail({ stories }: Props) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [closeStory, goToNext, goToPrev, openIndex]);
 
+  const progress =
+    activeStory?.mediaType === 'image'
+      ? imageProgress
+      : isEmbedVideo
+        ? embedProgress
+        : nativeProgress;
+
   const railItems = useMemo(
     () =>
-      stories.map((story, index) => (
-        <button
-          key={story.id}
-          type="button"
-          className="story-item"
-          onClick={() => openStory(index)}
-          aria-label={`Open story: ${story.title}`}
-        >
-          <span className="story-ring">
-            <span className="story-ring__inner">
-              {story.mediaType === 'video' ? (
-                <video
-                  className="story-avatar"
-                  src={story.mediaUrl}
-                  muted
-                  playsInline
-                  preload="metadata"
-                />
-              ) : (
-                <img className="story-avatar" src={story.mediaUrl} alt={story.title} />
-              )}
+      stories.map((story, index) => {
+        const isFileVideo =
+          story.mediaType === 'video' && isDirectVideoFileUrl(story.mediaUrl);
+
+        return (
+          <button
+            key={story.id}
+            type="button"
+            className="story-item"
+            onClick={() => openStory(index)}
+            aria-label={`Open story: ${story.title}`}
+          >
+            <span className="story-ring">
+              <span className="story-ring__inner">
+                {isFileVideo ? (
+                  <video
+                    className="story-avatar"
+                    src={story.mediaUrl}
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                ) : story.mediaType === 'video' ? (
+                  <span className="story-avatar story-avatar--embed" aria-hidden>
+                    ▶
+                  </span>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="story-avatar" src={story.mediaUrl} alt={story.title} />
+                )}
+              </span>
             </span>
-          </span>
-          <span className="story-label">{story.title}</span>
-        </button>
-      )),
+            <span className="story-label">{story.title}</span>
+          </button>
+        );
+      }),
     [openStory, stories],
   );
 
   if (stories.length === 0) {
     return null;
   }
+
+  const mediaContent =
+    activeStory == null ? null : activeStory.mediaType === 'video' ? (
+      <SiteVideoEmbed
+        key={activeStory.id}
+        url={activeStory.mediaUrl}
+        title={activeStory.title}
+        className="story-modal__media"
+        videoRef={videoRef}
+        onNativeEnded={goToNext}
+      />
+    ) : (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        key={activeStory.id}
+        className="story-modal__media"
+        src={activeStory.mediaUrl}
+        alt={activeStory.title}
+      />
+    );
 
   return (
     <>
@@ -201,23 +269,25 @@ export function StoriesRail({ stories }: Props) {
                 <IconChevronRight size={24} />
               </button>
 
-              <div className="story-modal__media-frame">
-                {activeStory.mediaType === 'video' ? (
-                  <video
-                    key={activeStory.id}
-                    ref={videoRef}
-                    className="story-modal__media"
-                    src={activeStory.mediaUrl}
-                    controls
-                    playsInline
-                  />
+              <div
+                className={
+                  activeStoryLink
+                    ? 'story-modal__media-frame story-modal__media-frame--linked'
+                    : 'story-modal__media-frame'
+                }
+              >
+                {activeStoryLink && activeStory.mediaType === 'image' ? (
+                  <Link
+                    href={activeStoryLink}
+                    className="story-modal__media-link"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`باز کردن لینک: ${activeStory.title}`}
+                  >
+                    {mediaContent}
+                  </Link>
                 ) : (
-                  <img
-                    key={activeStory.id}
-                    className="story-modal__media"
-                    src={activeStory.mediaUrl}
-                    alt={activeStory.title}
-                  />
+                  mediaContent
                 )}
               </div>
 
@@ -231,9 +301,14 @@ export function StoriesRail({ stories }: Props) {
               </button>
             </div>
 
-            {activeStory.link ? (
+            {activeStoryLink ? (
               <div className="story-modal__footer">
-                <Link href={activeStory.link} className="btn-danger" target="_blank" rel="noreferrer">
+                <Link
+                  href={activeStoryLink}
+                  className="btn-danger"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   مشاهده خبر
                 </Link>
               </div>

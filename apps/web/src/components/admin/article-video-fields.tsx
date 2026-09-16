@@ -2,6 +2,8 @@
 
 import { useId, useState } from 'react';
 import { uploadArticleEditorMedia } from '@/lib/article-editor-media';
+import { resolveVideoPlayback } from '@/lib/video-playback';
+import { SiteVideoEmbed } from '@/components/site/site-video-embed';
 
 type Props = {
   initialHasVideo?: boolean;
@@ -20,6 +22,9 @@ export function ArticleVideoFields({ initialHasVideo = false, initialVideoUrl = 
   const isLocalUpload =
     videoPath.startsWith('/uploads/videos/') ||
     videoPath.startsWith('/uploads/blog/content/');
+  const playback = videoPath.trim() ? resolveVideoPlayback(videoPath) : null;
+  const showFilePreview = playback?.kind === 'file';
+  const showEmbedPreview = playback?.kind === 'iframe';
 
   return (
     <div className="form-field article-video-field">
@@ -44,7 +49,7 @@ export function ArticleVideoFields({ initialHasVideo = false, initialVideoUrl = 
               آدرس ویدیو
             </label>
             <p className="form-field__hint">
-              YouTube، Aparat، یا هر URL https — در غیر این صورت فایل را بارگذاری کنید.
+              لینک صفحه YouTube یا Aparat، یا آدرس مستقیم فایل — در غیر این صورت فایل را بارگذاری کنید.
             </p>
             <input
               id={videoUrlId}
@@ -52,7 +57,7 @@ export function ArticleVideoFields({ initialHasVideo = false, initialVideoUrl = 
               dir="ltr"
               value={isLocalUpload ? '' : videoPath}
               onChange={(event) => setVideoPath(event.target.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
+              placeholder="https://www.aparat.com/v/... یا https://www.youtube.com/watch?v=..."
             />
           </div>
           <div className="form-field">
@@ -102,6 +107,26 @@ export function ArticleVideoFields({ initialHasVideo = false, initialVideoUrl = 
             <p className="form-field__hint" dir="ltr">
               مسیر فعلی: {videoPath}
             </p>
+          ) : null}
+          {showFilePreview ? (
+            <div className="story-media-field__preview">
+              <video
+                src={videoPath}
+                controls
+                playsInline
+                className="story-media-field__video"
+                aria-label="پیش‌نمایش ویدیو"
+              />
+            </div>
+          ) : null}
+          {showEmbedPreview ? (
+            <div className="story-media-field__preview story-media-field__preview--embed">
+              <SiteVideoEmbed
+                url={videoPath}
+                title="پیش‌نمایش ویدیو"
+                className="story-media-field__embed"
+              />
+            </div>
           ) : null}
         </div>
       ) : null}

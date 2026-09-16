@@ -41,7 +41,14 @@ export default async function AdminStoriesPage({ searchParams }: AdminStoriesPag
             <StoryMediaFields idPrefix="story-create" />
             <label className="form-field" style={{ gridColumn: '1 / -1' }}>
               <span className="form-field__label">لینک مقصد (اختیاری)</span>
-              <input name="link" type="url" dir="ltr" placeholder="https://example.com/article" />
+              <input
+                name="link"
+                type="text"
+                dir="ltr"
+                inputMode="url"
+                placeholder="https://example.com/article"
+                autoComplete="off"
+              />
             </label>
             <label className="checkbox-field">
               <input name="isActive" type="checkbox" defaultChecked />
@@ -104,12 +111,15 @@ export default async function AdminStoriesPage({ searchParams }: AdminStoriesPag
                               initialMediaUrl={story.mediaUrl}
                             />
                             <label className="form-field" style={{ gridColumn: '1 / -1' }}>
-                              <span className="form-field__label">لینک مقصد</span>
+                              <span className="form-field__label">لینک مقصد (اختیاری)</span>
                               <input
                                 name="link"
-                                type="url"
+                                type="text"
                                 dir="ltr"
+                                inputMode="url"
                                 defaultValue={story.link ?? ''}
+                                placeholder="https://example.com/article"
+                                autoComplete="off"
                               />
                             </label>
                             <label className="checkbox-field">

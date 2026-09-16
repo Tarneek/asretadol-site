@@ -137,12 +137,12 @@ export function SiteHeader() {
         <div className="site-container-fluid site-header__inner">
           <Link href="/" className="site-header__brand" aria-label="پایگاه خبری تحلیلی — صفحه اصلی">
             <Image
-              src="/img/logo-top.png"
+              src="/assets/image/nira-news-logo.png"
               alt="نیرا نیوز — پایگاه خبری تحلیلی"
-              fill
-              sizes="(max-width: 576px) 70vw, 280px"
+              width={3031}
+              height={800}
+              sizes="(max-width: 576px) 70vw, (max-width: 992px) 40vw, 280px"
               className="site-header__logo"
-              style={{ objectFit: 'contain' }}
               unoptimized
               priority
             />

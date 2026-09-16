@@ -7,6 +7,8 @@ import {
   isUploadedMediaPath,
 } from '@/lib/format';
 import { toPublicUploadUrl } from '@/lib/article-editor-media';
+import { resolveVideoPlayback } from '@/lib/video-playback';
+import { SiteVideoEmbed } from '@/components/site/site-video-embed';
 
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 const VIDEO_MAX_BYTES = 100 * 1024 * 1024;
@@ -31,12 +33,11 @@ type Props = {
 };
 
 function isDirectVideoPreview(url: string): boolean {
-  return (
-    url.startsWith('blob:') ||
-    url.startsWith('/uploads/videos/') ||
-    url.startsWith('/uploads/blog/') ||
-    /\.(mp4|webm|mov)(\?|$)/i.test(url)
-  );
+  return resolveVideoPlayback(url).kind === 'file';
+}
+
+function isEmbedVideoPreview(url: string): boolean {
+  return resolveVideoPlayback(url).kind === 'iframe';
 }
 
 function revokeIfBlob(url: string) {
@@ -116,10 +117,11 @@ export function StoryMediaFields({
 
   const hint =
     mediaType === 'video'
-      ? 'لینک مستقیم ویدیو (https) یا بارگذاری فایل — MP4، WebM یا MOV، حداکثر ۱۰۰ مگابایت.'
+      ? 'لینک آپارات/یوتیوب، لینک مستقیم ویدیو (https)، یا بارگذاری فایل — MP4، WebM یا MOV، حداکثر ۱۰۰ مگابایت.'
       : 'لینک تصویر (https) یا بارگذاری فایل — JPEG، PNG، WebP یا GIF، حداکثر ۵ مگابایت.';
 
   const showVideoPreview = mediaType === 'video' && previewUrl && isDirectVideoPreview(previewUrl);
+  const showEmbedPreview = mediaType === 'video' && previewUrl && isEmbedVideoPreview(previewUrl);
   const imageSrc = storyImageSrc(previewUrl);
   const imageUnoptimized =
     imageSrc.startsWith('blob:') ||
@@ -311,7 +313,17 @@ export function StoryMediaFields({
           </div>
         ) : null}
 
-        {mediaType === 'video' && previewUrl && !showVideoPreview ? (
+        {showEmbedPreview ? (
+          <div className="story-media-field__preview story-media-field__preview--embed">
+            <SiteVideoEmbed
+              url={previewUrl}
+              title="پیش‌نمایش ویدیو استوری"
+              className="story-media-field__embed"
+            />
+          </div>
+        ) : null}
+
+        {mediaType === 'video' && previewUrl && !showVideoPreview && !showEmbedPreview ? (
           <p className="form-field__hint" dir="ltr">
             پیش‌نمایش برای این آدرس ویدیو در دسترس نیست؛ پس از ذخیره در سایت نمایش داده می‌شود.
           </p>

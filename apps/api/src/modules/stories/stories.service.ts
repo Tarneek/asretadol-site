@@ -59,7 +59,8 @@ export class StoriesService {
     }
     if (dto.mediaType !== undefined) {
       story.mediaType = dto.mediaType;
-    }    if (dto.link !== undefined) {
+    }
+    if (dto.link !== undefined) {
       story.link = dto.link?.trim() || null;
     }
     if (dto.isActive !== undefined) {
