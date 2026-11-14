@@ -13,13 +13,17 @@ Production-oriented news CMS monorepo: **NestJS** API, **Next.js** web, **Postgr
 ```bash
 cp .env.example .env
 # optional: cp apps/web/.env.example apps/web/.env.local
-docker compose up -d
+# If localhost:5432 is already used, set POSTGRES_HOST_PORT and DATABASE_PORT
+# to the same free port in .env (e.g. 5437), then:
+docker compose up -d postgres
 pnpm install
 pnpm migration:run
 pnpm seed:demo
 # Re-seed after schema/content changes: SEED_DEMO_FORCE=1 pnpm seed:demo
 pnpm dev
 ```
+
+Do **not** run the full Compose stack (`api`/`web`/`nginx`) for local `pnpm dev` — those are for production-style Docker deploys. Locally only Postgres is needed from Compose.
 
 | Service | URL |
 |---------|-----|

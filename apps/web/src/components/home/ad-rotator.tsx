@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import {
+  getAdRotationIntervalMs,
+  resolveAdPlacementDisplay,
+} from '@/lib/ad-placement-display';
 import { isUploadedMediaPath } from '@/lib/format';
 import type { PublicAdvertisement } from '@/lib/types/public-api';
 
@@ -10,41 +14,15 @@ type Props = {
   className: string;
 };
 
-export function AdRotator({ ads, className }: Props) {
-  const rotatableAds = useMemo(
-    () => ads.filter((ad) => ad.rotationEnabled),
-    [ads],
-  );
-  const staticAds = useMemo(
-    () => (rotatableAds.length > 0 ? rotatableAds : ads),
-    [ads, rotatableAds],
-  );
-
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    setIndex(0);
-  }, [staticAds]);
-
-  useEffect(() => {
-    if (staticAds.length <= 1 || rotatableAds.length <= 1) {
-      return;
-    }
-
-    const intervalMs = (staticAds[0]?.rotationIntervalSeconds ?? 8) * 1000;
-    const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % staticAds.length);
-    }, intervalMs);
-
-    return () => window.clearInterval(timer);
-  }, [staticAds, rotatableAds.length]);
-
-  if (staticAds.length === 0) {
-    return <div className={className} aria-hidden="true" />;
-  }
-
-  const ad = staticAds[index] ?? staticAds[0];
-  const unoptimized = isUploadedMediaPath(ad.imageUrl) || ad.imageUrl.startsWith('http');
+function AdUnit({
+  ad,
+  className,
+}: {
+  ad: PublicAdvertisement;
+  className: string;
+}) {
+  const unoptimized =
+    isUploadedMediaPath(ad.imageUrl) || ad.imageUrl.startsWith('http');
 
   return (
     <a
@@ -64,4 +42,49 @@ export function AdRotator({ ads, className }: Props) {
       />
     </a>
   );
+}
+
+/** Rotating carousel — only mounted when a placement has 2+ ads. */
+function AdCarousel({
+  ads,
+  className,
+}: {
+  ads: PublicAdvertisement[];
+  className: string;
+}) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [ads]);
+
+  useEffect(() => {
+    const intervalMs = getAdRotationIntervalMs(ads);
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % ads.length);
+    }, intervalMs);
+
+    return () => window.clearInterval(timer);
+  }, [ads]);
+
+  const ad = ads[index] ?? ads[0]!;
+  return <AdUnit ad={ad} className={className} />;
+}
+
+/**
+ * Renders ads for one placement/slot.
+ * Single ad → static; multiple → carousel; none → empty placeholder.
+ */
+export function AdRotator({ ads, className }: Props) {
+  const display = resolveAdPlacementDisplay(ads);
+
+  if (display.mode === 'empty') {
+    return <div className={className} aria-hidden="true" />;
+  }
+
+  if (display.mode === 'static') {
+    return <AdUnit ad={display.ads[0]} className={className} />;
+  }
+
+  return <AdCarousel ads={display.ads} className={className} />;
 }

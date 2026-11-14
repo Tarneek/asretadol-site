@@ -15,6 +15,7 @@
     "start:api": "pnpm --filter @news-platform/api start:prod",
     "start:web": "pnpm --filter @news-platform/web start",
     "lint": "pnpm -r lint",
+    "test": "pnpm --filter @news-platform/web test",
     "typecheck": "pnpm --filter @news-platform/api typecheck && pnpm --filter @news-platform/web typecheck",
     "migration:run": "pnpm --filter @news-platform/api migration:run",
     "migration:run:prod": "pnpm --filter @news-platform/api migration:run:prod",
