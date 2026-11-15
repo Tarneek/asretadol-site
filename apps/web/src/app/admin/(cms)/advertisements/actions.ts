@@ -8,6 +8,7 @@ import {
   deleteAdminAdvertisement,
   updateAdminAdvertisement,
 } from '@/lib/api/admin-advertisements';
+import { revalidateAfterAdvertisementMutation } from '@/lib/cache/site-revalidate';
 
 function errorRedirect(message: string): never {
   redirect(`/admin/advertisements?error=${encodeURIComponent(message)}`);
@@ -90,7 +91,7 @@ export async function createAdvertisementAction(formData: FormData) {
   }
 
   revalidatePath('/admin/advertisements');
-  revalidatePath('/');
+  revalidateAfterAdvertisementMutation();
   redirect('/admin/advertisements?created=1');
 }
 
@@ -127,7 +128,7 @@ export async function updateAdvertisementAction(
   }
 
   revalidatePath('/admin/advertisements');
-  revalidatePath('/');
+  revalidateAfterAdvertisementMutation();
   redirect('/admin/advertisements?saved=1');
 }
 
@@ -139,6 +140,6 @@ export async function deleteAdvertisementAction(id: string) {
   }
 
   revalidatePath('/admin/advertisements');
-  revalidatePath('/');
+  revalidateAfterAdvertisementMutation();
   redirect('/admin/advertisements?deleted=1');
 }

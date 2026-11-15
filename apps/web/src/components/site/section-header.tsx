@@ -18,22 +18,23 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className={showDate ? 'lineTitle' : 'lineTitle2'}>
-      <div className="titlepart">
-        <h4 className="heading-with-icon">
-          <IconNewspaper size={22} className="heading-with-icon__glyph" />
-          <span>{title}</span>
-        </h4>
-      </div>
-      <div className="line">
-        {showDate && dateLabel ? <div className="datebox">{dateLabel}</div> : null}
-      </div>
-      {moreHref ? (
-        <div className="more">
-          <Link href={moreHref} className="btn-danger">
-            {moreLabel}
-          </Link>
+      {showDate && dateLabel ? <div className="lineTitle__datebox datebox">{dateLabel}</div> : null}
+      <div className="lineTitle__row">
+        <div className="titlepart">
+          <h4 className="heading-with-icon">
+            <IconNewspaper size={22} className="heading-with-icon__glyph" />
+            <span>{title}</span>
+          </h4>
         </div>
-      ) : null}
+        <div className="line" aria-hidden="true" />
+        {moreHref ? (
+          <div className="more">
+            <Link href={moreHref} className="btn-danger">
+              {moreLabel}
+            </Link>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

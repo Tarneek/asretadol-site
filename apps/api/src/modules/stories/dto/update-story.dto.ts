@@ -3,11 +3,11 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  IsUrl,
   MaxLength,
-  ValidateIf,
+  Validate,
 } from 'class-validator';
 import { StoryMediaType } from '../../../common/enums/story-media-type.enum';
+import { IsStoryLinkConstraint } from './create-story.dto';
 
 export class UpdateStoryDto {
   @IsOptional()
@@ -24,10 +24,9 @@ export class UpdateStoryDto {
   @IsEnum(StoryMediaType)
   mediaType?: StoryMediaType;
 
-  /** Destination URL — optional; empty/null clears the link. */
+  /** Destination URL or site-relative path — optional; empty/null clears the link. */
   @IsOptional()
-  @ValidateIf((_, value) => typeof value === 'string' && value.trim().length > 0)
-  @IsUrl({ require_tld: false }, { message: 'link must be a valid URL' })
+  @Validate(IsStoryLinkConstraint)
   @MaxLength(2048)
   link?: string | null;
 

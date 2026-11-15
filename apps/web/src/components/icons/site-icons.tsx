@@ -141,3 +141,24 @@ export function IconPlay(props: SiteIconProps) {
     </svg>
   );
 }
+
+export function IconVolume(props: SiteIconProps) {
+  const svg = baseSvgProps(props);
+  return (
+    <svg {...svg}>
+      <path d="M4 10v4h3l4 4V6L7 10H4z" strokeLinejoin="round" />
+      <path d="M15 9.5a3.5 3.5 0 0 1 0 5" strokeLinecap="round" />
+      <path d="M17.5 7a6 6 0 0 1 0 10" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconVolumeMute(props: SiteIconProps) {
+  const svg = baseSvgProps(props);
+  return (
+    <svg {...svg}>
+      <path d="M4 10v4h3l4 4V6L7 10H4z" strokeLinejoin="round" />
+      <path d="M16 10l4 4M20 10l-4 4" strokeLinecap="round" />
+    </svg>
+  );
+}

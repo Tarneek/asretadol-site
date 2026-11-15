@@ -7,6 +7,7 @@ import {
   deleteAdminCategory,
   updateAdminCategory,
 } from '@/lib/api/admin-categories';
+import { revalidateAfterTaxonomyMutation } from '@/lib/cache/site-revalidate';
 
 function errorRedirect(message: string): never {
   redirect(`/admin/categories?error=${encodeURIComponent(message)}`);
@@ -26,6 +27,7 @@ export async function createCategoryAction(formData: FormData) {
   }
 
   revalidatePath('/admin/categories');
+  revalidateAfterTaxonomyMutation();
   redirect('/admin/categories?created=1');
 }
 
@@ -43,6 +45,7 @@ export async function updateCategoryAction(id: string, formData: FormData) {
   }
 
   revalidatePath('/admin/categories');
+  revalidateAfterTaxonomyMutation();
   redirect('/admin/categories?saved=1');
 }
 
@@ -54,5 +57,6 @@ export async function deleteCategoryAction(id: string) {
   }
 
   revalidatePath('/admin/categories');
+  revalidateAfterTaxonomyMutation();
   redirect('/admin/categories?deleted=1');
 }

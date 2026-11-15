@@ -88,16 +88,25 @@ export function tagHref(slug: string): string {
   return `/tag/${slug}`;
 }
 
-export const NEWS_PLACEHOLDER_IMAGE_PATH = '/images/placeholder-news.svg';
+/** Default news art when an article has no image or the image fails to load. */
+export const NEWS_PLACEHOLDER_IMAGE_PATH = '/images/nira-news-default.jpg';
 
-/** User uploads are served by nginx from the shared volume — not Next static/optimizer. */
+/** User uploads are served by nginx from the shared volume — not Next's static/optimizer. */
 export function isUploadedMediaPath(url: string): boolean {
   return url.startsWith('/uploads/');
 }
 
 export function imageOrPlaceholder(url: string | null | undefined): string {
-  if (url && url.startsWith('/')) {
-    return url;
+  const value = url?.trim() ?? '';
+  if (!value) {
+    return NEWS_PLACEHOLDER_IMAGE_PATH;
+  }
+  if (value.startsWith('/') || /^https?:\/\//i.test(value)) {
+    return value;
   }
   return NEWS_PLACEHOLDER_IMAGE_PATH;
+}
+
+export function isNewsPlaceholderImage(url: string): boolean {
+  return url === NEWS_PLACEHOLDER_IMAGE_PATH;
 }

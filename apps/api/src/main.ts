@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { resolve } from 'node:path';
 import { AppModule } from './app.module';
@@ -46,9 +47,24 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix('api');
 
+  // Public JSON feeds must not be cached by browsers or intermediate proxies.
+  // Next.js Data Cache is the intentional caching layer (tags + ISR).
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/api/public') || req.path.startsWith('/public')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+    }
+    next();
+  });
+
   const blogRoot = ensureBlogUploadDirectories();
   app.useStaticAssets(resolve(blogRoot, '..'), {
     prefix: '/uploads/',
+    // Uploads use unique filenames; allow short CDN/browser cache without immutable.
+    maxAge: '7d',
+    setHeaders: (res: Response) => {
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+    },
   });
 
   // Rich article HTML and large JSON payloads (default ~100kb is too small).

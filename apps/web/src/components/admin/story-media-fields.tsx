@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import Image from 'next/image';
 import {
   NEWS_PLACEHOLDER_IMAGE_PATH,
@@ -128,6 +128,28 @@ export function StoryMediaFields({
     isUploadedMediaPath(imageSrc) ||
     imageSrc.startsWith('http');
 
+  // Block form submit while a client-side upload is in flight (avoids saving
+  // with a stale mediaUrl or empty media after the user picked a new file).
+  useEffect(() => {
+    const input = fileInputRef.current;
+    const form = input?.form;
+    if (!form) {
+      return;
+    }
+
+    const onSubmit = (event: Event) => {
+      if (!uploading) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      setFileError('لطفاً صبر کنید تا بارگذاری فایل تمام شود، سپس ذخیره کنید.');
+    };
+
+    form.addEventListener('submit', onSubmit);
+    return () => form.removeEventListener('submit', onSubmit);
+  }, [uploading]);
+
   function handleMediaTypeChange(nextType: MediaType) {
     setMediaType(nextType);
     setUploading(false);
@@ -230,6 +252,9 @@ export function StoryMediaFields({
         <p className="form-field__hint">{hint}</p>
 
         <input type="hidden" name="mediaUrl" value={mediaUrl} />
+        {initialMediaUrl.trim() ? (
+          <input type="hidden" name="existingMediaUrl" value={initialMediaUrl.trim()} />
+        ) : null}
 
         <div className="form-field" style={{ marginTop: '0.75rem' }}>
           <label className="form-field__label" htmlFor={urlId}>
@@ -243,6 +268,7 @@ export function StoryMediaFields({
             onChange={(event) => handleUrlChange(event.target.value)}
             placeholder={urlPlaceholder}
             disabled={uploading}
+            autoComplete="off"
           />
         </div>
 
@@ -253,6 +279,7 @@ export function StoryMediaFields({
           <input
             ref={fileInputRef}
             id={fileId}
+            name="mediaFile"
             type="file"
             accept={accept}
             disabled={uploading}

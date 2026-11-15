@@ -1,3 +1,4 @@
+import { SITE_CACHE_TAGS } from '../cache/site-revalidate';
 import { apiFetch } from './client';
 import type {
   ListArticlesParams,
@@ -6,6 +7,14 @@ import type {
   PublicCategoryArticles,
   PublicTagArticles,
 } from '../types/public-api';
+
+/** Short ISR safety net; CMS mutations bust tags immediately. */
+const ARTICLE_REVALIDATE_SECONDS = 30;
+
+const ARTICLE_CACHE = {
+  revalidate: ARTICLE_REVALIDATE_SECONDS,
+  tags: [SITE_CACHE_TAGS.home, SITE_CACHE_TAGS.articles],
+} as const;
 
 function toSearchParams(params: ListArticlesParams): Record<string, string | number | undefined> {
   return {
@@ -22,6 +31,7 @@ export async function fetchLatestArticles(
 ): Promise<PaginatedPublicArticles> {
   return apiFetch<PaginatedPublicArticles>('/public/articles/latest', {
     searchParams: toSearchParams(params ?? {}),
+    ...ARTICLE_CACHE,
   });
 }
 
@@ -33,6 +43,7 @@ export async function fetchFeaturedArticles(
       page: params?.page,
       limit: params?.limit,
     },
+    ...ARTICLE_CACHE,
   });
 }
 
@@ -44,6 +55,7 @@ export async function fetchHeroArticles(
       page: params?.page,
       limit: params?.limit,
     },
+    ...ARTICLE_CACHE,
   });
 }
 
@@ -55,15 +67,20 @@ export async function fetchBreakingArticles(
       page: params?.page,
       limit: params?.limit,
     },
+    ...ARTICLE_CACHE,
   });
 }
 
 export async function fetchArticleBySlug(slug: string): Promise<PublicArticleDetail> {
-  return apiFetch<PublicArticleDetail>(`/public/articles/${encodeURIComponent(slug)}`);
+  return apiFetch<PublicArticleDetail>(`/public/articles/${encodeURIComponent(slug)}`, {
+    ...ARTICLE_CACHE,
+  });
 }
 
 export async function fetchArticleById(id: number): Promise<PublicArticleDetail> {
-  return apiFetch<PublicArticleDetail>(`/public/articles/${id}`);
+  return apiFetch<PublicArticleDetail>(`/public/articles/${id}`, {
+    ...ARTICLE_CACHE,
+  });
 }
 
 export async function fetchCategoryArticles(
@@ -77,6 +94,8 @@ export async function fetchCategoryArticles(
         page: params?.page,
         limit: params?.limit,
       },
+      revalidate: ARTICLE_REVALIDATE_SECONDS,
+      tags: [SITE_CACHE_TAGS.home, SITE_CACHE_TAGS.articles, SITE_CACHE_TAGS.taxonomy],
     },
   );
 }
@@ -90,6 +109,8 @@ export async function fetchTagArticles(
       page: params?.page,
       limit: params?.limit,
     },
+    revalidate: ARTICLE_REVALIDATE_SECONDS,
+    tags: [SITE_CACHE_TAGS.home, SITE_CACHE_TAGS.articles, SITE_CACHE_TAGS.taxonomy],
   });
 }
 
@@ -112,5 +133,8 @@ export async function searchPublicArticles(params: {
       categorySlug: params.categorySlug,
       tagSlug: params.tagSlug,
     },
+    // Search should stay fresh; still tag so publish/unpublish can bust lists.
+    revalidate: 30,
+    tags: [SITE_CACHE_TAGS.articles],
   });
 }

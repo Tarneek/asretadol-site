@@ -1,5 +1,13 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { imageOrPlaceholder, isUploadedMediaPath } from '@/lib/format';
+import {
+  NEWS_PLACEHOLDER_IMAGE_PATH,
+  imageOrPlaceholder,
+  isNewsPlaceholderImage,
+  isUploadedMediaPath,
+} from '@/lib/format';
 
 type SiteArticleImageProps = {
   src: string | null | undefined;
@@ -22,10 +30,22 @@ export function SiteArticleImage({
   sizes,
   priority,
 }: SiteArticleImageProps) {
-  const resolved = imageOrPlaceholder(src);
+  const [resolved, setResolved] = useState(() => imageOrPlaceholder(src));
+
+  useEffect(() => {
+    setResolved(imageOrPlaceholder(src));
+  }, [src]);
+
   // Runtime volume files are not served by Next's static handler in standalone;
   // nginx serves /uploads/* — skip the optimizer so the browser hits nginx directly.
-  const unoptimized = isUploadedMediaPath(resolved);
+  const unoptimized =
+    isUploadedMediaPath(resolved) || isNewsPlaceholderImage(resolved);
+
+  const handleError = () => {
+    setResolved((current) =>
+      isNewsPlaceholderImage(current) ? current : NEWS_PLACEHOLDER_IMAGE_PATH,
+    );
+  };
 
   if (fill) {
     return (
@@ -37,6 +57,7 @@ export function SiteArticleImage({
         sizes={sizes ?? '(max-width: 768px) 100vw, 50vw'}
         priority={priority}
         unoptimized={unoptimized}
+        onError={handleError}
       />
     );
   }
@@ -51,6 +72,7 @@ export function SiteArticleImage({
       sizes={sizes}
       priority={priority}
       unoptimized={unoptimized}
+      onError={handleError}
     />
   );
 }

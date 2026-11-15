@@ -4,7 +4,11 @@ import { Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
 import { Story } from './entities/story.entity';
-import { normalizeStoryMediaUrl } from './story-media.util';
+import {
+  normalizeStoryLink,
+  normalizeStoryMediaUrl,
+} from './story-media.util';
+
 @Injectable()
 export class StoriesService {
   constructor(
@@ -38,7 +42,7 @@ export class StoriesService {
       title: dto.title.trim(),
       mediaUrl: normalizeStoryMediaUrl(dto.mediaUrl, dto.mediaType),
       mediaType: dto.mediaType,
-      link: dto.link?.trim() || null,
+      link: normalizeStoryLink(dto.link),
       isActive: dto.isActive ?? true,
     });
 
@@ -53,15 +57,22 @@ export class StoriesService {
       story.title = dto.title.trim();
     }
     if (dto.mediaUrl !== undefined) {
-      story.mediaUrl = normalizeStoryMediaUrl(dto.mediaUrl, nextMediaType);
+      const nextUrl = dto.mediaUrl.trim();
+      // Keep an already-stored URL even if legacy; only re-validate new values.
+      if (nextUrl === story.mediaUrl.trim()) {
+        story.mediaUrl = nextUrl;
+      } else {
+        story.mediaUrl = normalizeStoryMediaUrl(nextUrl, nextMediaType);
+      }
     } else if (dto.mediaType !== undefined && dto.mediaType !== story.mediaType) {
+      // Type changed without a new file — re-check the existing path for the new type.
       story.mediaUrl = normalizeStoryMediaUrl(story.mediaUrl, dto.mediaType);
     }
     if (dto.mediaType !== undefined) {
       story.mediaType = dto.mediaType;
     }
     if (dto.link !== undefined) {
-      story.link = dto.link?.trim() || null;
+      story.link = normalizeStoryLink(dto.link);
     }
     if (dto.isActive !== undefined) {
       story.isActive = dto.isActive;

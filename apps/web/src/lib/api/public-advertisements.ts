@@ -1,10 +1,12 @@
+import { SITE_CACHE_TAGS } from '../cache/site-revalidate';
 import { apiFetch, ApiError, isApiNetworkError } from './client';
 import { ApiConfigurationError } from '../config';
 import type { PublicAdvertisement } from '../types/public-api';
 
 export async function fetchPublicAdvertisements(): Promise<PublicAdvertisement[]> {
   return apiFetch<PublicAdvertisement[]>('/public/advertisements', {
-    revalidate: 60,
+    revalidate: 30,
+    tags: [SITE_CACHE_TAGS.home, SITE_CACHE_TAGS.advertisements],
   });
 }
 

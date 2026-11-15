@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { IconNewsFlash } from '@/components/icons/site-icons';
 import { ArticleNewsThumbnail } from '@/components/site/article-news-thumbnail';
 import { articleHref } from '@/lib/format';
+import { shouldShowNewsCardExcerpt } from '@/lib/news-card-excerpt';
 import type { PublicArticleCard } from '@/lib/types/public-api';
 
 type Props = {
@@ -23,23 +24,33 @@ export function ShortNews({ articles }: Props) {
       </div>
       <div className="site-container shortNews">
         <div className="shortNews-grid">
-          {articles.slice(0, 8).map((article) => (
-            <Link key={article.id} href={articleHref(article.id, article.title)} className="item">
-              <div className="imgbox">
-                <ArticleNewsThumbnail
-                  src={article.featuredImage}
-                  alt={article.title}
-                  hasVideo={article.hasVideo}
-                  fill
-                  sizes="(max-width: 768px) 50vw, 200px"
-                />
-              </div>
-              <div className="bodyText">
-                <h3>{article.title}</h3>
-                {article.excerpt ? <p>{article.excerpt}</p> : null}
-              </div>
-            </Link>
-          ))}
+          {articles.slice(0, 8).map((article) => {
+            const showExcerpt = shouldShowNewsCardExcerpt(article.title, article.excerpt);
+
+            return (
+              <Link
+                key={article.id}
+                href={articleHref(article.id, article.title)}
+                className="shortNews__item item"
+              >
+                <div className="imgbox">
+                  <ArticleNewsThumbnail
+                    src={article.featuredImage}
+                    alt={article.title}
+                    hasVideo={article.hasVideo}
+                    fill
+                    sizes="(max-width: 768px) 88px, 95px"
+                  />
+                </div>
+                <div className="bodyText">
+                  <h3 className="news-card-title shortNews__title">{article.title}</h3>
+                  {showExcerpt ? (
+                    <p className="news-card-excerpt shortNews__excerpt">{article.excerpt}</p>
+                  ) : null}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>

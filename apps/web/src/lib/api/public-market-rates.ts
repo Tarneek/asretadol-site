@@ -1,3 +1,4 @@
+import { SITE_CACHE_TAGS } from '../cache/site-revalidate';
 import { apiFetch, ApiError, isApiNetworkError } from './client';
 import { ApiConfigurationError } from '../config';
 import type { PublicMarketRate } from '../types/public-api';
@@ -5,6 +6,7 @@ import type { PublicMarketRate } from '../types/public-api';
 export async function fetchPublicMarketRates(): Promise<PublicMarketRate[]> {
   return apiFetch<PublicMarketRate[]>('/public/market-rates', {
     revalidate: 60,
+    tags: [SITE_CACHE_TAGS.home, SITE_CACHE_TAGS.marketRates],
   });
 }
 

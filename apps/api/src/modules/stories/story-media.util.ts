@@ -1,12 +1,47 @@
 import { BadRequestException } from '@nestjs/common';
 import { StoryMediaType } from '../../common/enums/story-media-type.enum';
-import {
-  ARTICLE_UPLOAD_URL_PREFIX,
-  ARTICLE_VIDEO_UPLOAD_URL_PREFIX,
-  BLOG_CONTENT_UPLOAD_URL_PREFIX,
-  BLOG_UPLOAD_URL_PREFIX,
-} from '../articles/article-media.constants';
+const HTTP_URL_RE = /^https?:\/\//i;
 
+/** True for absolute http(s) URLs or site-relative paths (e.g. /news/1/slug). */
+export function isValidStoryLink(value: string | null | undefined): boolean {
+  const trimmed = value?.trim() ?? '';
+  if (!trimmed) {
+    return true;
+  }
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+    return trimmed.length > 1 && !trimmed.includes('://');
+  }
+  if (!HTTP_URL_RE.test(trimmed)) {
+    return false;
+  }
+  try {
+    // eslint-disable-next-line no-new
+    new URL(trimmed);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Empty → null; keep absolute URLs and site-relative paths as-is. */
+export function normalizeStoryLink(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() ?? '';
+  if (!trimmed) {
+    return null;
+  }
+  if (!isValidStoryLink(trimmed)) {
+    throw new BadRequestException(
+      'link must be a valid URL (https://...) or a site path starting with /',
+    );
+  }
+  return trimmed;
+}
+
+/**
+ * Accepts remote http(s) URLs and any uploaded `/uploads/...` path.
+ * Image/video-specific prefixes remain preferred, but legacy or shared
+ * upload folders must not block updates of existing stories.
+ */
 export function normalizeStoryMediaUrl(
   value: string | null | undefined,
   mediaType: StoryMediaType,
@@ -16,32 +51,28 @@ export function normalizeStoryMediaUrl(
     throw new BadRequestException('mediaUrl is required');
   }
 
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+  if (HTTP_URL_RE.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith('/uploads/')) {
+    return trimmed;
+  }
+
+  // Static site assets (placeholder / branding) used as story art.
+  if (mediaType === StoryMediaType.Image && trimmed.startsWith('/images/')) {
     return trimmed;
   }
 
   if (mediaType === StoryMediaType.Image) {
-    if (
-      trimmed.startsWith(ARTICLE_UPLOAD_URL_PREFIX) ||
-      trimmed.startsWith(BLOG_UPLOAD_URL_PREFIX) ||
-      trimmed.startsWith('/images/')
-    ) {
-      return trimmed;
-    }
     throw new BadRequestException(
-      'Image media must be a URL or a path under /uploads/news/ or /uploads/blog/',
+      'Image media must be a URL or a path under /uploads/ or /images/',
     );
   }
 
   if (mediaType === StoryMediaType.Video) {
-    if (
-      trimmed.startsWith(ARTICLE_VIDEO_UPLOAD_URL_PREFIX) ||
-      trimmed.startsWith(BLOG_CONTENT_UPLOAD_URL_PREFIX)
-    ) {
-      return trimmed;
-    }
     throw new BadRequestException(
-      'Video media must be a URL or a path under /uploads/videos/ or /uploads/blog/content/',
+      'Video media must be a URL or a path under /uploads/',
     );
   }
 

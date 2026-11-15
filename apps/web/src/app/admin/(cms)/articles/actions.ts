@@ -12,9 +12,10 @@ import {
   uploadAdminArticleImage,
   uploadAdminArticleVideo,
 } from '@/lib/api/admin-articles';
+import { userFacingApiError } from '@/lib/api/user-facing-error';
+import { revalidateAfterArticleMutation } from '@/lib/cache/site-revalidate';
 import { NEWS_PLACEHOLDER_IMAGE_PATH } from '@/lib/format';
 import { sanitizeArticleHtmlForStorage } from '@/lib/sanitize-html';
-import { userFacingApiError } from '@/lib/api/user-facing-error';
 import { generateArticleSlug } from '@/lib/url/generate-article-slug';
 
 function actionErrorRedirect(path: string, message: string): never {
@@ -225,6 +226,7 @@ export async function createArticleAction(
   }
 
   revalidatePath('/admin/articles');
+  revalidateAfterArticleMutation({ id: article.id, slug: article.slug });
   redirect(`/admin/articles/${article.id}?created=1`);
 }
 
@@ -309,6 +311,7 @@ export async function updateArticleAction(
 
   revalidatePath('/admin/articles');
   revalidatePath(`/admin/articles/${id}`);
+  revalidateAfterArticleMutation({ id, slug });
   redirect(`/admin/articles/${id}?saved=1`);
 }
 
@@ -320,6 +323,7 @@ export async function publishArticleAction(id: number) {
   }
   revalidatePath('/admin/articles');
   revalidatePath(`/admin/articles/${id}`);
+  revalidateAfterArticleMutation({ id });
   redirect(`/admin/articles/${id}?saved=1`);
 }
 
@@ -331,6 +335,7 @@ export async function archiveArticleAction(id: number) {
   }
   revalidatePath('/admin/articles');
   revalidatePath(`/admin/articles/${id}`);
+  revalidateAfterArticleMutation({ id });
   redirect(`/admin/articles/${id}?saved=1`);
 }
 
@@ -345,6 +350,7 @@ export async function setFeaturedArticleAction(id: number, featured: boolean) {
   }
   revalidatePath('/admin/articles');
   revalidatePath(`/admin/articles/${id}`);
+  revalidateAfterArticleMutation({ id });
   redirect(`/admin/articles/${id}?saved=1`);
 }
 
@@ -355,5 +361,6 @@ export async function deleteArticleAction(id: number) {
     actionErrorRedirect(`/admin/articles/${id}`, 'حذف مطلب ممکن نشد.');
   }
   revalidatePath('/admin/articles');
+  revalidateAfterArticleMutation({ id });
   redirect('/admin/articles?deleted=1');
 }

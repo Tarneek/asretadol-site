@@ -10,6 +10,9 @@ type SiteVideoEmbedProps = {
   /** Forwarded to native video for story progress tracking. */
   videoRef?: RefObject<HTMLVideoElement | null>;
   onNativeEnded?: () => void;
+  /** Native chrome; off for immersive story viewer. Default true. */
+  controls?: boolean;
+  muted?: boolean;
 };
 
 export function SiteVideoEmbed({
@@ -18,6 +21,8 @@ export function SiteVideoEmbed({
   className,
   videoRef,
   onNativeEnded,
+  controls = true,
+  muted = false,
 }: SiteVideoEmbedProps) {
   const playback = resolveVideoPlayback(url);
 
@@ -41,7 +46,8 @@ export function SiteVideoEmbed({
         ref={videoRef}
         className={className}
         src={playback.src}
-        controls
+        controls={controls}
+        muted={muted}
         playsInline
         preload="metadata"
         aria-label={title}

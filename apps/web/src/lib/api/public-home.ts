@@ -1,5 +1,7 @@
-import { apiFetch, ApiError, isApiNetworkError } from './client';
+import { SITE_CACHE_TAGS } from '../cache/site-revalidate';
 import { ApiConfigurationError } from '../config';
+import type { PublicArticleCard, PublicStory, PublicAdvertisement } from '../types/public-api';
+import { apiFetch, ApiError, isApiNetworkError } from './client';
 import {
   fetchCategoryArticles,
   fetchFeaturedArticles,
@@ -7,10 +9,9 @@ import {
   fetchLatestArticles,
   fetchTagArticles,
 } from './public-articles';
-import { fetchPublicStories } from './public-stories';
 import { safeFetchPublicAdvertisements } from './public-advertisements';
 import { safeFetchPublicMarketRates } from './public-market-rates';
-import type { PublicArticleCard, PublicStory, PublicAdvertisement } from '../types/public-api';
+import { fetchPublicStories } from './public-stories';
 
 export type PublicCategorySummary = {
   id: string;
@@ -28,13 +29,15 @@ export type PublicTagSummary = {
 
 export async function fetchPublicCategories(): Promise<PublicCategorySummary[]> {
   return apiFetch<PublicCategorySummary[]>('/public/categories', {
-    revalidate: 120,
+    revalidate: 60,
+    tags: [SITE_CACHE_TAGS.taxonomy],
   });
 }
 
 export async function fetchPublicTags(): Promise<PublicTagSummary[]> {
   return apiFetch<PublicTagSummary[]>('/public/tags', {
-    revalidate: 120,
+    revalidate: 60,
+    tags: [SITE_CACHE_TAGS.taxonomy],
   });
 }
 

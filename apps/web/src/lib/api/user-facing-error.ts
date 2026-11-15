@@ -18,6 +18,22 @@ const MESSAGE_FA: Record<string, string> = {
   'Video URL or file is required when "Has Video" is enabled.':
     'وقتی گزینه ویدیو فعال است، لینک یا فایل ویدیو الزامی است.',
   'Not authenticated': 'نشست شما منقضی شده است. دوباره وارد شوید.',
+  'mediaUrl is required': 'آدرس یا فایل رسانه استوری الزامی است.',
+  'link must be a valid URL':
+    'لینک مقصد نامعتبر است. از آدرس کامل (https://...) یا مسیر سایت مثل /news/... استفاده کنید.',
+  'link must be a valid URL (https://...) or a site path starting with /':
+    'لینک مقصد نامعتبر است. از آدرس کامل (https://...) یا مسیر سایت مثل /news/... استفاده کنید.',
+  'Image media must be a URL or a path under /uploads/ or /images/':
+    'مسیر تصویر استوری نامعتبر است. فایل را دوباره بارگذاری کنید یا یک لینک معتبر وارد کنید.',
+  'Video media must be a URL or a path under /uploads/':
+    'مسیر ویدیو استوری نامعتبر است. فایل را دوباره بارگذاری کنید یا یک لینک معتبر وارد کنید.',
+  'Image media must be a URL or a path under /uploads/news/ or /uploads/blog/':
+    'مسیر تصویر استوری نامعتبر است. فایل را دوباره بارگذاری کنید یا یک لینک معتبر وارد کنید.',
+  'Video media must be a URL or a path under /uploads/videos/ or /uploads/blog/content/':
+    'مسیر ویدیو استوری نامعتبر است. فایل را دوباره بارگذاری کنید یا یک لینک معتبر وارد کنید.',
+  'Invalid story media URL': 'آدرس رسانه استوری نامعتبر است.',
+  'Story media is required':
+    'رسانه استوری الزامی است. لینک معتبر وارد کنید یا فایل بارگذاری کنید.',
 };
 
 function firstMessage(body: string): string | null {

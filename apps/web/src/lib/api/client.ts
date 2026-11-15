@@ -36,7 +36,10 @@ export class ApiNetworkError extends Error {
 
 type ApiFetchOptions = {
   searchParams?: Record<string, string | number | undefined>;
+  /** Time-based ISR fallback (seconds). Use `false` for no-store. */
   revalidate?: number | false;
+  /** On-demand Data Cache tags — bust with `revalidateTag` after CMS writes. */
+  tags?: readonly string[];
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
@@ -83,7 +86,12 @@ export async function apiFetch<T>(path: string, options?: ApiFetchOptions): Prom
           : JSON.stringify(options!.body)
         : undefined,
       cache: useStaticCache ? undefined : 'no-store',
-      next: useStaticCache ? { revalidate: options?.revalidate ?? 60 } : undefined,
+      next: useStaticCache
+        ? {
+            revalidate: options?.revalidate ?? 60,
+            ...(options?.tags?.length ? { tags: [...options.tags] } : {}),
+          }
+        : undefined,
       signal: controller.signal,
     });
   } catch (error) {

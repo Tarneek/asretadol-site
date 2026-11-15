@@ -46,7 +46,7 @@ export default async function AdminStoriesPage({ searchParams }: AdminStoriesPag
                 type="text"
                 dir="ltr"
                 inputMode="url"
-                placeholder="https://example.com/article"
+                placeholder="https://example.com/article یا /news/..."
                 autoComplete="off"
               />
             </label>
@@ -118,7 +118,7 @@ export default async function AdminStoriesPage({ searchParams }: AdminStoriesPag
                                 dir="ltr"
                                 inputMode="url"
                                 defaultValue={story.link ?? ''}
-                                placeholder="https://example.com/article"
+                                placeholder="https://example.com/article یا /news/..."
                                 autoComplete="off"
                               />
                             </label>

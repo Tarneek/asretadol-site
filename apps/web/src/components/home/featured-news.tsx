@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArticleNewsThumbnail } from '@/components/site/article-news-thumbnail';
 import { AdRotator } from '@/components/home/ad-rotator';
 import { articleHref, formatFaDate } from '@/lib/format';
+import { shouldShowNewsCardExcerpt } from '@/lib/news-card-excerpt';
 import type { PublicAdvertisement, PublicArticleCard } from '@/lib/types/public-api';
 
 type Props = {
@@ -28,21 +29,38 @@ export function FeaturedNews({ hero, featured, latest, adSlot0 = [], adSlot1 = [
       <div>
         <div className="featured-main">
           <div className="ImportantNewsList">
-            {sideList.map((article) => (
-              <Link key={article.id} href={articleHref(article.id, article.title)} className="item">
-                <div className="imgbox">
-                  <ArticleNewsThumbnail
-                    src={article.featuredImage}
-                    alt={article.title}
-                    hasVideo={article.hasVideo}
-                    fill
-                    sizes="95px"
-                  />
-                  <div className="coverVideo" />
-                </div>
-                <h3>{article.title}</h3>
-              </Link>
-            ))}
+            {sideList.map((article) => {
+              const showExcerpt = shouldShowNewsCardExcerpt(article.title, article.excerpt);
+
+              return (
+                <Link
+                  key={article.id}
+                  href={articleHref(article.id, article.title)}
+                  className="item"
+                >
+                  <div className="imgbox">
+                    <ArticleNewsThumbnail
+                      src={article.featuredImage}
+                      alt={article.title}
+                      hasVideo={article.hasVideo}
+                      fill
+                      sizes="95px"
+                    />
+                    <div className="coverVideo" />
+                  </div>
+                  <div className="bodyText">
+                    <h3 className="news-card-title ImportantNewsList__title">
+                      {article.title}
+                    </h3>
+                    {showExcerpt ? (
+                      <p className="news-card-excerpt ImportantNewsList__excerpt">
+                        {article.excerpt}
+                      </p>
+                    ) : null}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
           <Link href={articleHref(mainHero.id, mainHero.title)} className="newsVideo news1">
             <ArticleNewsThumbnail

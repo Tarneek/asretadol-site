@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createAdminTag, deleteAdminTag, updateAdminTag } from '@/lib/api/admin-tags';
+import { revalidateAfterTaxonomyMutation } from '@/lib/cache/site-revalidate';
 
 function errorRedirect(message: string): never {
   redirect(`/admin/tags?error=${encodeURIComponent(message)}`);
@@ -18,6 +19,7 @@ export async function createTagAction(formData: FormData) {
   }
 
   revalidatePath('/admin/tags');
+  revalidateAfterTaxonomyMutation();
   redirect('/admin/tags?created=1');
 }
 
@@ -31,6 +33,7 @@ export async function updateTagAction(id: string, formData: FormData) {
   }
 
   revalidatePath('/admin/tags');
+  revalidateAfterTaxonomyMutation();
   redirect('/admin/tags?saved=1');
 }
 
@@ -42,5 +45,6 @@ export async function deleteTagAction(id: string) {
   }
 
   revalidatePath('/admin/tags');
+  revalidateAfterTaxonomyMutation();
   redirect('/admin/tags?deleted=1');
 }

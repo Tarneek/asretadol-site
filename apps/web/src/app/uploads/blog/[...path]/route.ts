@@ -38,7 +38,9 @@ export async function GET(
   if (contentType) {
     headers.set('Content-Type', contentType);
   }
-  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  // Unique upload filenames make long TTL safe; avoid `immutable` so rare
+  // same-path replacements (ops/manual) are not stuck for a year in browsers.
+  headers.set('Cache-Control', 'public, max-age=604800');
 
   return new NextResponse(response.body, { status: 200, headers });
 }
