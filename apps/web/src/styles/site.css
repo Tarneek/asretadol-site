@@ -801,7 +801,7 @@
 }
 
 .site-root[data-site-theme='light'] .rightPanel,
-.site-root[data-site-theme='light'] .stories-mobile {
+.site-root[data-site-theme='light'] .stories-mobile-wrap .stories-mobile {
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -818,30 +818,42 @@
 }
 
 .story-ring {
-  display: inline-flex;
+  display: block;
+  box-sizing: border-box;
   width: 78px;
+  height: 78px;
   aspect-ratio: 1 / 1;
   border-radius: 999px;
   padding: 2px;
   margin: 0 auto;
+  flex-shrink: 0;
   background: linear-gradient(135deg, #ffffff, var(--danger), #f5c542);
 }
 
 .story-ring__inner {
-  display: inline-flex;
+  position: relative;
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
-  padding: 3px;
   border-radius: 999px;
+  overflow: hidden;
   background: #fff;
 }
 
 .story-avatar {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 3px;
+  width: auto;
+  height: auto;
+  max-width: none;
   border-radius: 999px;
   object-fit: cover;
+  object-position: center;
   background: #1e1e1e;
+  /* Avoid iOS collapsing %-sized replaced elements inside overflow-x rails */
+  min-width: 0;
+  min-height: 0;
 }
 
 .story-avatar--embed {
@@ -861,8 +873,30 @@
   line-height: 1.5;
 }
 
-.stories-mobile {
+/* Wrapper hosts the peek fade so mask-image is NOT on the scrolling layer
+   (WebKit often fails to paint <img>/<video> under overflow + CSS mask). */
+.stories-mobile-wrap {
   display: none;
+  position: relative;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.stories-mobile-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1.35rem;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(to right, var(--panel), transparent);
+}
+
+.stories-mobile {
+  display: flex;
   gap: 0.85rem;
   overflow-x: auto;
   overflow-y: hidden;
@@ -880,9 +914,6 @@
     background-color 0.3s ease,
     color 0.3s ease,
     border-color 0.3s ease;
-  /* Soft fade on the physical left edge — next stories peek there in RTL */
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.35rem);
-  mask-image: linear-gradient(to right, transparent 0, #000 1.35rem);
 }
 
 .stories-mobile::-webkit-scrollbar {
@@ -899,6 +930,7 @@
 
 .stories-mobile .story-item {
   flex: 0 0 90px;
+  width: 90px;
   scroll-snap-align: start;
 }
 
@@ -1132,10 +1164,14 @@ iframe.story-modal__media {
     display: none;
   }
 
-  .stories-mobile {
-    display: flex;
+  .stories-mobile-wrap {
+    display: block;
     width: 100%;
     margin: 0;
+  }
+
+  .stories-mobile {
+    width: 100%;
   }
 
   .leftPanelFather > .lineTitle,

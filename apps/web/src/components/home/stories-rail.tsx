@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import {
@@ -10,8 +10,10 @@ import {
   IconVolume,
   IconVolumeMute,
 } from '@/components/icons/site-icons';
+import { StoryRailAvatar } from '@/components/home/story-rail-avatar';
 import { SiteVideoEmbed } from '@/components/site/site-video-embed';
-import { isDirectVideoFileUrl, resolveVideoPlayback } from '@/lib/video-playback';
+import { NEWS_PLACEHOLDER_IMAGE_PATH, imageOrPlaceholder } from '@/lib/format';
+import { resolveVideoPlayback } from '@/lib/video-playback';
 import type { PublicStory } from '@/lib/types/public-api';
 
 type Props = {
@@ -171,46 +173,27 @@ export function StoriesRail({ stories }: Props) {
         ? embedProgress
         : nativeProgress;
 
-  const railItems = useMemo(
-    () =>
-      stories.map((story, index) => {
-        const isFileVideo =
-          story.mediaType === 'video' && isDirectVideoFileUrl(story.mediaUrl);
-
-        return (
-          <button
-            key={story.id}
-            type="button"
-            className="story-item"
-            onClick={() => openStory(index)}
-            aria-label={`Open story: ${story.title}`}
-          >
-            <span className="story-ring">
-              <span className="story-ring__inner">
-                {isFileVideo ? (
-                  <video
-                    className="story-avatar"
-                    src={story.mediaUrl}
-                    muted
-                    playsInline
-                    preload="metadata"
-                  />
-                ) : story.mediaType === 'video' ? (
-                  <span className="story-avatar story-avatar--embed" aria-hidden>
-                    ▶
-                  </span>
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img className="story-avatar" src={story.mediaUrl} alt={story.title} />
-                )}
-              </span>
-            </span>
-            <span className="story-label">{story.title}</span>
-          </button>
-        );
-      }),
-    [openStory, stories],
-  );
+  const renderRail = (railKey: 'desktop' | 'mobile') =>
+    stories.map((story, index) => (
+      <button
+        key={`${railKey}-${story.id}`}
+        type="button"
+        className="story-item"
+        onClick={() => openStory(index)}
+        aria-label={`Open story: ${story.title}`}
+      >
+        <span className="story-ring">
+          <span className="story-ring__inner">
+            <StoryRailAvatar
+              title={story.title}
+              mediaUrl={story.mediaUrl}
+              mediaType={story.mediaType}
+            />
+          </span>
+        </span>
+        <span className="story-label">{story.title}</span>
+      </button>
+    ));
 
   if (stories.length === 0) {
     return null;
@@ -233,8 +216,14 @@ export function StoriesRail({ stories }: Props) {
       <img
         key={activeStory.id}
         className="story-modal__media"
-        src={activeStory.mediaUrl}
+        src={imageOrPlaceholder(activeStory.mediaUrl)}
         alt={activeStory.title}
+        onError={(event) => {
+          const target = event.currentTarget;
+          if (!target.src.endsWith(NEWS_PLACEHOLDER_IMAGE_PATH)) {
+            target.src = NEWS_PLACEHOLDER_IMAGE_PATH;
+          }
+        }}
       />
     );
 
@@ -358,8 +347,10 @@ export function StoriesRail({ stories }: Props) {
   return (
     <>
       <div className="rightPanelFather">
-        <div className="rightPanel desktop-only">{railItems}</div>
-        <div className="stories-mobile">{railItems}</div>
+        <div className="rightPanel desktop-only">{renderRail('desktop')}</div>
+        <div className="stories-mobile-wrap">
+          <div className="stories-mobile">{renderRail('mobile')}</div>
+        </div>
       </div>
       {storyViewer}
     </>
