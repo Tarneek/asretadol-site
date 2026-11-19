@@ -830,34 +830,46 @@
   background: linear-gradient(135deg, #ffffff, var(--danger), #f5c542);
 }
 
+/* Media paints into a square hole; 3px gap shows as the ring’s inner rim. */
 .story-ring__inner {
   position: relative;
   display: block;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  border-radius: 999px;
+  padding: 0;
+  border-radius: 50%;
   overflow: hidden;
-  background: #fff;
+  background: #111;
 }
 
-.story-avatar {
+/*
+  Must beat `.site-root img { height: auto }` — that rule was forcing landscape
+  thumbnails to keep intrinsic ratio and leave black gaps inside the circle.
+*/
+.site-root .story-ring__inner img.story-avatar,
+.site-root .story-ring__inner video.story-avatar,
+.site-root .story-ring__inner .story-avatar {
   position: absolute;
-  inset: 3px;
-  width: auto;
-  height: auto;
+  top: 3px;
+  left: 3px;
+  display: block;
+  box-sizing: border-box;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
   max-width: none;
-  border-radius: 999px;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
   object-fit: cover;
-  object-position: center;
-  background: #1e1e1e;
-  /* Avoid iOS collapsing %-sized replaced elements inside overflow-x rails */
-  min-width: 0;
-  min-height: 0;
+  object-position: center center;
+  background: #1a1a1a;
 }
 
 .story-avatar--embed {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;

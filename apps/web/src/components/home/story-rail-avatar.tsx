@@ -10,28 +10,31 @@ import { isDirectVideoFileUrl } from '@/lib/video-playback';
 
 type Props = {
   title: string;
-  mediaUrl: string;
+  mediaUrl: string | null | undefined;
   mediaType: 'image' | 'video';
 };
 
 /**
- * Circular story rail thumbnail.
- * Uses a plain <img>/<video> (not next/image) so horizontal mobile scroll
- * is not blocked by optimizer/lazy intersection quirks.
+ * Circular story rail thumbnail for desktop + mobile rails.
+ * Native <img>/<video> (not next/image) — avoids optimizer/lazy issues in overflow rails.
  */
 export function StoryRailAvatar({ title, mediaUrl, mediaType }: Props) {
-  const [src, setSrc] = useState(() => imageOrPlaceholder(mediaUrl));
-  const [videoFailed, setVideoFailed] = useState(false);
+  const resolved = imageOrPlaceholder(mediaUrl);
+  const [src, setSrc] = useState(resolved);
+  const [useImageFallback, setUseImageFallback] = useState(false);
 
   useEffect(() => {
     setSrc(imageOrPlaceholder(mediaUrl));
-    setVideoFailed(false);
+    setUseImageFallback(false);
   }, [mediaUrl]);
 
   const isFileVideo =
-    mediaType === 'video' && isDirectVideoFileUrl(mediaUrl) && !videoFailed;
+    mediaType === 'video' &&
+    Boolean(mediaUrl?.trim()) &&
+    isDirectVideoFileUrl(mediaUrl!) &&
+    !useImageFallback;
 
-  if (mediaType === 'video' && !isFileVideo) {
+  if (mediaType === 'video' && !isFileVideo && !useImageFallback) {
     return (
       <span className="story-avatar story-avatar--embed" aria-hidden>
         ▶
@@ -40,8 +43,8 @@ export function StoryRailAvatar({ title, mediaUrl, mediaType }: Props) {
   }
 
   if (isFileVideo) {
-    // `#t=0.001` forces Safari/iOS to decode a first frame for the circle preview.
-    const videoSrc = mediaUrl.includes('#') ? mediaUrl : `${mediaUrl}#t=0.001`;
+    const raw = mediaUrl!.trim();
+    const videoSrc = raw.includes('#') ? raw : `${raw}#t=0.001`;
 
     return (
       <video
@@ -51,19 +54,25 @@ export function StoryRailAvatar({ title, mediaUrl, mediaType }: Props) {
         playsInline
         preload="metadata"
         aria-label={title}
-        onError={() => setVideoFailed(true)}
+        onError={() => {
+          setSrc(NEWS_PLACEHOLDER_IMAGE_PATH);
+          setUseImageFallback(true);
+        }}
       />
     );
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- rail needs eager native decode in overflow-x
+    // eslint-disable-next-line @next/next/no-img-element -- rail needs eager native decode
     <img
       className="story-avatar"
-      src={src}
+      src={src || NEWS_PLACEHOLDER_IMAGE_PATH}
       alt={title}
+      width={72}
+      height={72}
       loading="eager"
       decoding="async"
+      referrerPolicy="no-referrer"
       draggable={false}
       onError={() => {
         setSrc((current) =>
